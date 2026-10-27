@@ -1,0 +1,265 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard | Popoye Insurance</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+
+  <div class="app-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <img src="images/logo.png" alt="Popoye Insurance Logo">
+        <div>
+          <h2>Popoye</h2>
+          <p>Insurance</p>
+        </div>
+      </div>
+
+      <p class="menu-label">MAIN MENU</p>
+
+      <nav class="navigation">
+        <a href="index.html" class="nav-link active">
+          <span>▦</span> Dashboard
+        </a>
+        <a href="customers.html" class="nav-link">
+          <span>♙</span> Customers
+        </a>
+        <a href="policies.html" class="nav-link">
+          <span>▤</span> Policies
+        </a>
+        <a href="payments.html" class="nav-link">
+          <span>₹</span> Payments
+        </a>
+        <a href="reports.html" class="nav-link">
+          <span>▥</span> Reports
+        </a>
+        <a href="reminders.html" class="nav-link">
+          <span>♧</span> Reminders
+        </a>
+        <a href="settings.html" class="nav-link">
+          <span>⚙</span> Settings
+        </a>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="admin-profile">
+          <div class="avatar">A</div>
+          <div>
+            <strong>Administrator</strong>
+            <small>Admin Account</small>
+          </div>
+        </div>
+
+        <button id="logoutBtn" class="logout-btn">
+          ↪ Logout
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+      <header class="topbar">
+        <button id="menuToggle" class="menu-toggle"
+                aria-label="Toggle sidebar">☰</button>
+
+        <div>
+          <h2>Dashboard</h2>
+          <p class="topbar-subtitle">Welcome to Popoye Insurance</p>
+        </div>
+
+        <div class="topbar-actions">
+          <span class="status-dot"></span>
+          <span class="admin-label">Admin</span>
+          <button id="themeToggle" class="icon-btn"
+                  aria-label="Toggle dark mode">◐</button>
+        </div>
+      </header>
+
+      <section class="page-content">
+
+        <div class="welcome-banner">
+          <div>
+            <p class="welcome-tag">INSURANCE MANAGEMENT</p>
+            <h1>Welcome back, Administrator!</h1>
+            <p>Here is an overview of your two-wheeler insurance business.</p>
+          </div>
+          <div class="banner-icon">🏍️</div>
+        </div>
+
+        <!-- Summary Cards -->
+        <section class="stats-grid">
+
+          <article class="stat-card">
+            <div class="stat-top">
+              <span>Total Customers</span>
+              <div class="stat-icon teal">♙</div>
+            </div>
+            <h2 id="totalCustomers">0</h2>
+            <p>Registered customers</p>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-top">
+              <span>Total Policies</span>
+              <div class="stat-icon blue">▤</div>
+            </div>
+            <h2 id="totalPolicies">0</h2>
+            <p>Recorded policies</p>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-top">
+              <span>Premium Collected</span>
+              <div class="stat-icon green">₹</div>
+            </div>
+            <h2 id="totalPremium">₹0</h2>
+            <p>Successful demo payments</p>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-top">
+              <span>Pending Payments</span>
+              <div class="stat-icon orange">◷</div>
+            </div>
+            <h2 id="pendingPayments">0</h2>
+            <p>Payments awaiting completion</p>
+          </article>
+
+        </section>
+
+        <!-- Quick Actions -->
+        <section class="section-block">
+          <div class="section-heading">
+            <div>
+              <h2>Quick Actions</h2>
+              <p>Manage your daily insurance activities.</p>
+            </div>
+          </div>
+
+          <div class="quick-actions">
+            <a href="customers.html" class="action-card">
+              <span class="action-icon teal">＋</span>
+              <span>
+                <strong>Add Customer</strong>
+                <small>Register a new customer</small>
+              </span>
+              <span class="arrow">›</span>
+            </a>
+
+            <a href="policies.html" class="action-card">
+              <span class="action-icon blue">▤</span>
+              <span>
+                <strong>Manage Policies</strong>
+                <small>View insurance policies</small>
+              </span>
+              <span class="arrow">›</span>
+            </a>
+
+            <a href="payments.html" class="action-card">
+              <span class="action-icon green">₹</span>
+              <span>
+                <strong>Record Payment</strong>
+                <small>Review payment records</small>
+              </span>
+              <span class="arrow">›</span>
+            </a>
+
+            <a href="reminders.html" class="action-card">
+              <span class="action-icon orange">♧</span>
+              <span>
+                <strong>Renewal Reminders</strong>
+                <small>Check upcoming renewals</small>
+              </span>
+              <span class="arrow">›</span>
+            </a>
+          </div>
+        </section>
+
+        <!-- Renewal Overview -->
+        <section class="section-block">
+          <div class="section-heading">
+            <div>
+              <h2>Renewal Overview</h2>
+              <p>Policies that may require your attention.</p>
+            </div>
+            <a href="policies.html" class="view-link">View Policies →</a>
+          </div>
+
+          <div class="renewal-grid">
+            <article class="renewal-card">
+              <div class="renewal-icon red">!</div>
+              <div>
+                <p>Expired Policies</p>
+                <h2 id="expiredPolicies">0</h2>
+              </div>
+            </article>
+
+            <article class="renewal-card">
+              <div class="renewal-icon orange">◷</div>
+              <div>
+                <p>Expiring in 30 Days</p>
+                <h2 id="expiringPolicies">0</h2>
+              </div>
+            </article>
+
+            <article class="renewal-card">
+              <div class="renewal-icon green">✓</div>
+              <div>
+                <p>Active Policies</p>
+                <h2 id="activePolicies">0</h2>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- Recent Payments -->
+        <section class="section-block">
+          <div class="section-heading">
+            <div>
+              <h2>Recent Payments</h2>
+              <p>Latest payment activity recorded in this browser.</p>
+            </div>
+            <a href="payments.html" class="view-link">View All →</a>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Customer</th>
+                  <th>Vehicle Number</th>
+                  <th>Amount</th>
+                  <th>Method</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="recentPaymentsBody">
+                <tr>
+                  <td colspan="5" class="empty-state">
+                    No payments recorded yet.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <footer class="page-footer">
+          © <span id="currentYear"></span> Popoye Insurance.
+          All rights reserved.
+        </footer>
+
+      </section>
+    </main>
+  </div>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>

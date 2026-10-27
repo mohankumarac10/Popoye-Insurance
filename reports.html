@@ -1,0 +1,211 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports | Popoye Insurance</title>
+  <link rel="stylesheet" href="reports.css">
+  <script src="reports.js" defer></script>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <img src="images/logo.png" alt="Popoye Insurance logo">
+        <div>
+          <h2>Popoye</h2>
+          <span>Insurance</span>
+        </div>
+      </div>
+
+      <p class="menu-heading">MAIN MENU</p>
+      <nav class="navigation">
+        <a href="index.html"><span>▦</span> Dashboard</a>
+        <a href="customers.html"><span>♙</span> Customers</a>
+        <a href="policies.html"><span>▤</span> Policies</a>
+        <a href="payments.html"><span>₹</span> Payments</a>
+        <a href="reminders.html"><span>◷</span> Reminders</a>
+        <a href="reports.html" class="active"><span>▥</span> Reports</a>
+        <a href="settings.html"><span>⚙</span> Settings</a>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="demo-note">
+          Reports mode
+          <small>Based on records saved in this browser.</small>
+        </div>
+        <button id="logoutBtn" class="logout-btn" type="button">↪ Log out</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <button id="menuToggle" class="menu-toggle" type="button" aria-label="Toggle menu">☰</button>
+        <div class="page-title">
+          <h1>Reports</h1>
+          <p>Review premium collections and payment performance.</p>
+        </div>
+        <button id="exportBtn" class="primary-btn" type="button">↓ Export CSV</button>
+      </header>
+
+      <section class="report-toolbar">
+        <div>
+          <label for="datePreset">Report period</label>
+          <select id="datePreset">
+            <option value="all">All dates</option>
+            <option value="today">Today</option>
+            <option value="7">Last 7 days</option>
+            <option value="30">Last 30 days</option>
+            <option value="month">This month</option>
+            <option value="custom">Custom date range</option>
+          </select>
+        </div>
+
+        <div id="customDateFields" class="custom-date-fields" hidden>
+          <div>
+            <label for="startDate">From date</label>
+            <input id="startDate" type="date">
+          </div>
+          <div>
+            <label for="endDate">To date</label>
+            <input id="endDate" type="date">
+          </div>
+        </div>
+
+        <div>
+          <label for="statusFilter">Payment status</label>
+          <select id="statusFilter">
+            <option value="">All statuses</option>
+            <option value="Paid">Paid</option>
+            <option value="Pending">Pending</option>
+            <option value="Failed">Failed</option>
+          </select>
+        </div>
+
+        <button id="applyFilters" class="secondary-btn" type="button">Apply Filters</button>
+        <button id="resetFilters" class="text-btn" type="button">Reset</button>
+      </section>
+
+      <div id="filterError" class="filter-error" role="alert" hidden></div>
+
+      <section class="summary-grid">
+        <article class="summary-card">
+          <div class="summary-icon">₹</div>
+          <p>Premium Collected</p>
+          <h2 id="collectedTotal">₹0</h2>
+          <span>Payments marked Paid</span>
+        </article>
+
+        <article class="summary-card">
+          <div class="summary-icon">◷</div>
+          <p>Pending Amount</p>
+          <h2 id="pendingTotal">₹0</h2>
+          <span>Payments awaiting completion</span>
+        </article>
+
+        <article class="summary-card">
+          <div class="summary-icon">✓</div>
+          <p>Paid Records</p>
+          <h2 id="paidCount">0</h2>
+          <span>In the selected period</span>
+        </article>
+
+        <article class="summary-card">
+          <div class="summary-icon">!</div>
+          <p>Failed Records</p>
+          <h2 id="failedCount">0</h2>
+          <span>In the selected period</span>
+        </article>
+      </section>
+
+      <section class="overview-grid">
+        <article class="panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Payment Status Overview</h2>
+              <p>Distribution of records matching your filters.</p>
+            </div>
+          </div>
+
+          <div class="status-overview">
+            <div class="donut" id="statusDonut" role="img" aria-label="Payment status distribution">
+              <div class="donut-center">
+                <strong id="statusTotal">0</strong>
+                <span>Payments</span>
+              </div>
+            </div>
+
+            <div class="legend">
+              <div><span class="legend-dot paid-dot"></span><span>Paid</span><strong id="legendPaid">0</strong></div>
+              <div><span class="legend-dot pending-dot"></span><span>Pending</span><strong id="legendPending">0</strong></div>
+              <div><span class="legend-dot failed-dot"></span><span>Failed</span><strong id="legendFailed">0</strong></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Business Snapshot</h2>
+              <p>Current totals from saved records.</p>
+            </div>
+          </div>
+
+          <div class="snapshot-list">
+            <div><span>Total customers</span><strong id="customerCount">0</strong></div>
+            <div><span>Total policies</span><strong id="policyCount">0</strong></div>
+            <div><span>Total payment records</span><strong id="allPaymentCount">0</strong></div>
+            <div><span>Filtered payment records</span><strong id="filteredPaymentCount">0</strong></div>
+          </div>
+        </article>
+      </section>
+
+      <section class="panel report-table-panel">
+        <div class="panel-heading table-heading">
+          <div>
+            <h2>Payment Report</h2>
+            <p id="reportSubtitle">All recorded payment entries.</p>
+          </div>
+          <input id="searchInput" type="search" placeholder="Search customer or reference..." aria-label="Search report">
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Payment ID</th>
+                <th>Customer</th>
+                <th>Vehicle Number</th>
+                <th>Payment Date</th>
+                <th>Method</th>
+                <th>Amount</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="reportTableBody"></tbody>
+          </table>
+        </div>
+
+        <div id="emptyState" class="empty-state" hidden>
+          <h3>No report data found</h3>
+          <p>Try another date range or add payment records first.</p>
+        </div>
+
+        <div class="pagination">
+          <span id="paginationInfo">Showing 0 of 0</span>
+          <div class="pagination-controls">
+            <button id="prevPage" class="page-btn" type="button">Previous</button>
+            <span id="pageNumbers"></span>
+            <button id="nextPage" class="page-btn" type="button">Next</button>
+          </div>
+        </div>
+      </section>
+
+      <p class="footer-note">
+        Popoye Insurance · Report values are calculated from local browser records.
+      </p>
+    </main>
+  </div>
+</body>
+</html>

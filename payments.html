@@ -1,0 +1,206 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payments | Popoye Insurance</title>
+  <link rel="stylesheet" href="payments.css">
+  <script src="payments.js" defer></script>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <img src="images/logo.png" alt="Popoye Insurance logo">
+        <div>
+          <h2>Popoye</h2>
+          <span>Insurance</span>
+        </div>
+      </div>
+
+      <p class="menu-heading">MAIN MENU</p>
+      <nav class="navigation">
+        <a href="index.html"><span>▦</span> Dashboard</a>
+        <a href="customers.html"><span>♙</span> Customers</a>
+        <a href="policies.html"><span>▤</span> Policies</a>
+        <a href="payments.html" class="active"><span>₹</span> Payments</a>
+        <a href="reminders.html"><span>◷</span> Reminders</a>
+        <a href="reports.html"><span>▥</span> Reports</a>
+        <a href="settings.html"><span>⚙</span> Settings</a>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="demo-note">Demo mode<br><small>No real payments are processed.</small></div>
+        <button id="logoutBtn" class="logout-btn" type="button">↪ Log out</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <button id="menuToggle" class="menu-toggle" type="button" aria-label="Toggle menu">☰</button>
+        <div>
+          <h1>Payments</h1>
+          <p>Manage insurance premium payment records.</p>
+        </div>
+        <button id="addPaymentBtn" class="primary-btn" type="button">＋ Add Payment</button>
+      </header>
+
+      <section class="stats-grid">
+        <article class="stat-card">
+          <span>Total Payments</span>
+          <h2 id="totalPayments">0</h2>
+          <p>All recorded payments</p>
+        </article>
+        <article class="stat-card">
+          <span>Amount Collected</span>
+          <h2 id="totalCollected">₹0</h2>
+          <p>Paid records only</p>
+        </article>
+        <article class="stat-card">
+          <span>Pending Amount</span>
+          <h2 id="pendingAmount">₹0</h2>
+          <p>Awaiting payment</p>
+        </article>
+        <article class="stat-card">
+          <span>Failed Payments</span>
+          <h2 id="failedPayments">0</h2>
+          <p>Records marked failed</p>
+        </article>
+      </section>
+
+      <section class="content-card">
+        <div class="section-heading">
+          <div>
+            <h2>Payment Records</h2>
+            <p>Search, filter and manage payment entries.</p>
+          </div>
+          <button id="exportBtn" class="secondary-btn" type="button">Export CSV</button>
+        </div>
+
+        <div class="filters">
+          <input id="searchInput" type="search" placeholder="Search customer, vehicle or transaction..." aria-label="Search payments">
+          <select id="statusFilter" aria-label="Filter by payment status">
+            <option value="">All statuses</option>
+            <option value="Paid">Paid</option>
+            <option value="Pending">Pending</option>
+            <option value="Failed">Failed</option>
+          </select>
+          <select id="methodFilter" aria-label="Filter by payment method">
+            <option value="">All methods</option>
+            <option value="UPI">UPI</option>
+            <option value="Cash">Cash</option>
+            <option value="Card">Card</option>
+            <option value="Net Banking">Net Banking</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Payment ID</th>
+                <th>Customer / Vehicle</th>
+                <th>Amount</th>
+                <th>Method</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="paymentsTableBody"></tbody>
+          </table>
+        </div>
+
+        <div id="emptyState" class="empty-state" hidden>
+          <h3>No payment records found</h3>
+          <p>Add a payment or change your search and filters.</p>
+        </div>
+
+        <div class="pagination">
+          <span id="paginationInfo">Showing 0 of 0</span>
+          <div>
+            <button id="prevPage" class="page-btn" type="button">Previous</button>
+            <span id="pageNumbers"></span>
+            <button id="nextPage" class="page-btn" type="button">Next</button>
+          </div>
+        </div>
+      </section>
+      <p class="footer-note">Popoye Insurance · Payment records are stored in this browser.</p>
+    </main>
+  </div>
+
+  <div id="paymentModal" class="modal" hidden>
+    <div class="modal-backdrop" data-close-modal></div>
+    <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-heading">
+        <div>
+          <h2 id="modalTitle">Add Payment</h2>
+          <p>Enter the payment details below.</p>
+        </div>
+        <button id="closeModalBtn" class="close-btn" type="button" aria-label="Close">×</button>
+      </div>
+
+      <form id="paymentForm">
+        <input id="paymentRecordId" type="hidden">
+
+        <label for="customerSelect">Customer <span>*</span></label>
+        <select id="customerSelect" required>
+          <option value="">Select customer</option>
+        </select>
+
+        <label for="policySelect">Policy <span>*</span></label>
+        <select id="policySelect" required>
+          <option value="">Select policy</option>
+        </select>
+        <small id="policyHelp" class="field-help">Choose a customer first.</small>
+
+        <div class="form-row">
+          <div>
+            <label for="amountInput">Amount (₹) <span>*</span></label>
+            <input id="amountInput" type="number" min="0.01" step="0.01" required placeholder="e.g. 2500">
+          </div>
+          <div>
+            <label for="paymentDate">Payment date <span>*</span></label>
+            <input id="paymentDate" type="date" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label for="methodSelect">Payment method <span>*</span></label>
+            <select id="methodSelect" required>
+              <option value="UPI">UPI</option>
+              <option value="Cash">Cash</option>
+              <option value="Card">Card</option>
+              <option value="Net Banking">Net Banking</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label for="paymentStatus">Payment status <span>*</span></label>
+            <select id="paymentStatus" required>
+              <option value="Pending">Pending</option>
+              <option value="Paid">Paid</option>
+              <option value="Failed">Failed</option>
+            </select>
+          </div>
+        </div>
+
+        <label for="transactionInput">Transaction / Reference ID</label>
+        <input id="transactionInput" type="text" maxlength="100" placeholder="Optional reference number">
+
+        <p class="demo-warning">Demo record only. Do not enter card numbers, CVV, UPI PINs, passwords or other payment credentials.</p>
+
+        <div class="form-actions">
+          <button id="cancelBtn" class="secondary-btn" type="button">Cancel</button>
+          <button class="primary-btn" type="submit">Save Payment</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div id="notice" class="notice" role="status" aria-live="polite"></div>
+</body>
+</html>

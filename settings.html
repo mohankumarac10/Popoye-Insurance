@@ -1,0 +1,181 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings | Popoye Insurance</title>
+  <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <img src="images/logo.png" alt="Popoye Insurance Logo">
+        <div>
+          <h2>Popoye</h2>
+          <span>Insurance</span>
+        </div>
+      </div>
+
+      <nav class="navigation">
+        <a href="index.html">Dashboard</a>
+        <a href="customers.html">Customers</a>
+        <a href="policies.html">Policies</a>
+        <a href="payments.html">Payments</a>
+        <a href="reminders.html">Reminders</a>
+        <a href="reports.html">Reports</a>
+        <a href="settings.html" class="active">Settings</a>
+      </nav>
+
+      <button id="logoutBtn" class="logout-btn">Log Out</button>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <button id="menuBtn" class="menu-btn" aria-label="Toggle navigation">☰</button>
+        <div>
+          <h1>Settings</h1>
+          <p>Manage your insurance business preferences.</p>
+        </div>
+      </header>
+
+      <div id="message" class="message" role="status" aria-live="polite"></div>
+
+      <form id="settingsForm">
+        <section class="settings-card">
+          <div class="section-heading">
+            <div>
+              <h2>Business Information</h2>
+              <p>Set the name and contact details for your business.</p>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="businessName">Business Name</label>
+              <input id="businessName" name="businessName" type="text"
+                maxlength="100" required>
+            </div>
+
+            <div class="form-group">
+              <label for="businessPhone">Contact Number</label>
+              <input id="businessPhone" name="businessPhone" type="tel"
+                maxlength="20" placeholder="Enter business phone">
+            </div>
+
+            <div class="form-group full-width">
+              <label for="businessEmail">Business Email</label>
+              <input id="businessEmail" name="businessEmail" type="email"
+                maxlength="150" placeholder="Enter business email">
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-card">
+          <div class="section-heading">
+            <div>
+              <h2>Renewal Reminders</h2>
+              <p>Choose your preferred reminder settings.</p>
+            </div>
+          </div>
+
+          <label class="toggle-row" for="enableReminders">
+            <span>
+              <strong>Enable reminders</strong>
+              <small>Enable reminder preferences in this browser.</small>
+            </span>
+            <input id="enableReminders" type="checkbox">
+          </label>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="reminderDays">Remind before expiry</label>
+              <select id="reminderDays">
+                <option value="7">7 days</option>
+                <option value="15">15 days</option>
+                <option value="30">30 days</option>
+                <option value="45">45 days</option>
+                <option value="60">60 days</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="reminderChannel">Preferred Channel</label>
+              <select id="reminderChannel">
+                <option value="WhatsApp">WhatsApp</option>
+                <option value="SMS">SMS</option>
+                <option value="Email">Email</option>
+              </select>
+            </div>
+          </div>
+
+          <p class="help-text">
+            These are saved preferences only. They do not automatically send
+            messages or connect to WhatsApp, SMS, or email services.
+          </p>
+        </section>
+
+        <section class="settings-card">
+          <div class="section-heading">
+            <div>
+              <h2>Appearance</h2>
+              <p>Choose how the website looks.</p>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="themePreference">Website Theme</label>
+            <select id="themePreference">
+              <option value="light">Light Mode</option>
+              <option value="dark">Dark Mode</option>
+            </select>
+          </div>
+          <p class="help-text">
+            Theme selection is saved in this browser. Other pages must read
+            the same popoyeTheme key to apply the theme.
+          </p>
+        </section>
+
+        <div class="form-actions">
+          <button type="button" id="resetBtn" class="secondary-btn">
+            Restore Defaults
+          </button>
+          <button type="submit" class="primary-btn">Save Settings</button>
+        </div>
+      </form>
+
+      <section class="settings-card data-card">
+        <div class="section-heading">
+          <div>
+            <h2>Local Data Overview</h2>
+            <p>Records saved in this browser for the demo website.</p>
+          </div>
+        </div>
+
+        <div class="data-grid">
+          <div class="data-item">
+            <span>Customers</span>
+            <strong id="customerCount">0</strong>
+          </div>
+          <div class="data-item">
+            <span>Policies</span>
+            <strong id="policyCount">0</strong>
+          </div>
+          <div class="data-item">
+            <span>Payments</span>
+            <strong id="paymentCount">0</strong>
+          </div>
+        </div>
+
+        <p class="help-text">
+          These records are stored locally in your browser, not in a secure
+          shared database. Clearing browser data may remove them.
+        </p>
+      </section>
+    </main>
+  </div>
+
+  <script src="settings.js"></script>
+</body>
+</html>

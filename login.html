@@ -1,0 +1,77 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | Popoye Insurance</title>
+  <link rel="stylesheet" href="login.css">
+</head>
+<body>
+  <main class="login-container">
+    <section class="login-brand">
+      <img src="images/logo.png" alt="Popoye Insurance Logo">
+      <h1>Popoye Insurance</h1>
+      <p>Two-Wheeler Insurance Management</p>
+
+      <div class="brand-message">
+        <h2>Welcome back!</h2>
+        <p>Manage customers, policies, payments and renewal reminders from one place.</p>
+      </div>
+    </section>
+
+    <section class="login-panel">
+      <form id="loginForm" class="login-form">
+        <div class="form-heading">
+          <span class="eyebrow">ADMIN PORTAL</span>
+          <h2>Sign in</h2>
+          <p>Enter your login details to continue.</p>
+        </div>
+
+        <div id="loginMessage" class="message" role="alert" aria-live="polite"></div>
+
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            placeholder="Enter username"
+            autocomplete="username"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="password-wrapper">
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="Enter password"
+              autocomplete="current-password"
+              required
+            >
+            <button type="button" id="togglePassword" class="show-password">
+              Show
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="login-button">Login to Dashboard</button>
+
+        <p class="security-note">
+          Demo login only. Connect a secure backend before using real business data.
+        </p>
+      </form>
+    </section>
+  </main>
+
+  <footer class="page-footer">
+    &copy; <span id="currentYear"></span> Popoye Insurance
+  </footer>
+
+  <script src="login.js"></script>
+</body>
+</html>

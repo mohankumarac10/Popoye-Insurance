@@ -1,0 +1,190 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customers | Popoye Insurance</title>
+  <link rel="stylesheet" href="customers.css">
+</head>
+<body>
+  <div class="app-layout">
+
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <img src="images/logo.png" alt="Popoye Insurance">
+        <div><h2>Popoye</h2><p>Insurance</p></div>
+      </div>
+
+      <p class="menu-label">MAIN MENU</p>
+      <nav class="navigation">
+        <a href="index.html" class="nav-link"><span>▦</span> Dashboard</a>
+        <a href="customers.html" class="nav-link active"><span>♙</span> Customers</a>
+        <a href="policies.html" class="nav-link"><span>▤</span> Policies</a>
+        <a href="payments.html" class="nav-link"><span>₹</span> Payments</a>
+        <a href="reports.html" class="nav-link"><span>▥</span> Reports</a>
+        <a href="reminders.html" class="nav-link"><span>♧</span> Reminders</a>
+        <a href="settings.html" class="nav-link"><span>⚙</span> Settings</a>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="admin-profile">
+          <div class="avatar">A</div>
+          <div><strong>Administrator</strong><small>Admin Account</small></div>
+        </div>
+        <button id="logoutBtn" class="logout-btn">↪ Logout</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <button id="menuToggle" class="menu-toggle" aria-label="Toggle menu">☰</button>
+        <div>
+          <h2>Customers</h2>
+          <p class="topbar-subtitle">Manage your insurance customers</p>
+        </div>
+        <button id="themeToggle" class="icon-btn" aria-label="Toggle dark mode">◐</button>
+      </header>
+
+      <section class="page-content">
+
+        <div class="page-heading">
+          <div>
+            <h1>Customer Management</h1>
+            <p>Add, update, search and manage customer information.</p>
+          </div>
+          <button id="addCustomerBtn" class="primary-btn">＋ Add Customer</button>
+        </div>
+
+        <section class="stats-grid">
+          <article class="stat-card">
+            <span>Total Customers</span>
+            <h2 id="totalCustomers">0</h2>
+          </article>
+          <article class="stat-card">
+            <span>With Phone Numbers</span>
+            <h2 id="customersWithPhone">0</h2>
+          </article>
+          <article class="stat-card">
+            <span>Registered This Month</span>
+            <h2 id="newCustomers">0</h2>
+          </article>
+        </section>
+
+        <section class="customer-panel">
+
+          <div class="toolbar">
+            <input id="searchInput" type="search"
+                   placeholder="Search name, phone, vehicle or email...">
+
+            <select id="customerFilter" aria-label="Filter customers">
+              <option value="all">All Customers</option>
+              <option value="withPhone">With Phone Number</option>
+              <option value="withoutPhone">Without Phone Number</option>
+            </select>
+
+            <button id="exportBtn" class="secondary-btn">Export CSV</button>
+          </div>
+
+          <div id="customerMessage" class="message" role="status"
+               aria-live="polite"></div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Customer ID</th>
+                  <th>Customer Details</th>
+                  <th>Phone Number</th>
+                  <th>Vehicle Number</th>
+                  <th>Registered Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="customerTableBody"></tbody>
+            </table>
+          </div>
+
+          <div class="pagination">
+            <span id="pageInfo">Showing 0 customers</span>
+            <div class="pagination-controls">
+              <button id="prevPage" class="page-btn">Previous</button>
+              <span id="pageNumber">1 / 1</span>
+              <button id="nextPage" class="page-btn">Next</button>
+            </div>
+          </div>
+        </section>
+
+        <footer class="page-footer">
+          © <span id="currentYear"></span> Popoye Insurance
+        </footer>
+      </section>
+    </main>
+  </div>
+
+  <!-- Add / Edit Customer Modal -->
+  <div class="modal-overlay" id="customerModal" hidden>
+    <section class="modal-card" role="dialog"
+             aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-heading">
+        <div>
+          <h2 id="modalTitle">Add New Customer</h2>
+          <p>Enter the customer's details below.</p>
+        </div>
+        <button type="button" id="closeModalBtn"
+                class="close-btn" aria-label="Close">×</button>
+      </div>
+
+      <form id="customerForm">
+        <input type="hidden" id="editCustomerId">
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="customerName">Full Name *</label>
+            <input id="customerName" type="text" maxlength="100"
+                   placeholder="Enter full name" required>
+          </div>
+
+          <div class="form-group">
+            <label for="customerPhone">Phone Number *</label>
+            <input id="customerPhone" type="tel"
+                   inputmode="numeric" maxlength="10"
+                   pattern="[6-9][0-9]{9}"
+                   title="Enter a valid 10-digit Indian mobile number"
+                   placeholder="10-digit mobile number" required>
+          </div>
+
+          <div class="form-group">
+            <label for="customerEmail">Email Address</label>
+            <input id="customerEmail" type="email" maxlength="150"
+                   placeholder="customer@example.com">
+          </div>
+
+          <div class="form-group">
+            <label for="vehicleNumber">Vehicle Number *</label>
+            <input id="vehicleNumber" type="text" maxlength="15"
+                   placeholder="TN01AB1234" required>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="customerAddress">Address</label>
+            <textarea id="customerAddress" rows="3" maxlength="300"
+                      placeholder="Enter customer address"></textarea>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" id="cancelBtn" class="secondary-btn">
+            Cancel
+          </button>
+          <button type="submit" class="primary-btn" id="saveCustomerBtn">
+            Save Customer
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <script src="customers.js"></script>
+</body>
+</html>
