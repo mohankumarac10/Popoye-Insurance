@@ -1,13 +1,13 @@
 
 :root {
-    --navy: #cd2020;
+    --navy: #1e133d;
     --teal: #093262;
-    --background: #56ed1a;
-    --surface: #FFFFFF;
-    --text: #24364B;
-    --muted: #718096;
-    --border: #E3EAF2;
-    --danger: #DC2626;
+    --background: #dfeaed;
+    --surface: #f2f0e9;
+    --text: #010810;
+    --muted: #2c0340;
+    --border: #fffbfb;
+    --danger: #a05f5f;
     --shadow: 0 10px 35px rgba(20, 43, 74, 0.08);
 }
 
@@ -21,7 +21,7 @@ body {
     font-family: Arial, Helvetica, sans-serif;
     background: var(--background);
     color: var(--text);
-    font-size: 14px;
+    font-size: 15px;
     line-height: 1.6;
 }
 
