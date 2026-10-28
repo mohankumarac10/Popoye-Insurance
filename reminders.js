@@ -1,484 +1,719 @@
 
 "use strict";
 
-document.addEventListener("DOMContentLoaded", () => {
-  // ==========================================
-  // POPOYE INSURANCE - REMINDERS MODULE
-  // WhatsApp actions are prepared-message demos
-  // ==========================================
+document.addEventListener("DOMContentLoaded", function () {
+    // ==================================================
+    // POPOYE INSURANCE - RENEWAL REMINDERS
+    // Frontend demo using LocalStorage
+    // ==================================================
 
-  const CUSTOMERS_KEY = "popoyeCustomers";
-  const POLICIES_KEY = "popoyePolicies";
-  const REMINDERS_KEY = "popoyeReminders";
-  const LOGIN_KEY = "popoyeLoggedIn";
+    const CUSTOMERS_KEY = "popoyeCustomers";
+    const POLICIES_KEY = "popoyePolicies";
+    const REMINDERS_KEY = "popoyeReminders";
+    const SETTINGS_KEY = "popoyeInsuranceSettings";
+    const PAGE_SIZE = 10;
 
-  if (localStorage.getItem(LOGIN_KEY) !== "true") {
-    window.location.href = "login.html";
-    return;
-  }
+    const $ = (id) => document.getElementById(id);
 
-  const $ = (id) => document.getElementById(id);
+    let allReminders = [];
+    let filteredReminders = [];
+    let currentPage = 1;
 
-  let currentPage = 1;
-  let reminderRows = [];
-  let messageTimer;
+    // ==================================================
+    // STORAGE HELPERS
+    // ==================================================
 
-  function readArray(key) {
-    try {
-      const value = JSON.parse(localStorage.getItem(key) || "[]");
-      return Array.isArray(value) ? value : [];
-    } catch (error) {
-      console.error("Unable to read " + key, error);
-      return [];
+    function readArray(key) {
+        try {
+            const value = JSON.parse(localStorage.getItem(key) || "[]");
+            return Array.isArray(value) ? value : [];
+        } catch (error) {
+            console.error("Unable to read storage:", key, error);
+            return [];
+        }
     }
-  }
 
-  function saveReminders(data) {
-    try {
-      localStorage.setItem(REMINDERS_KEY, JSON.stringify(data));
-      return true;
-    } catch (error) {
-      console.error("Unable to save reminders", error);
-      showMessage("Unable to save reminder status. Check browser storage.", true);
-      return false;
+    function saveReminders() {
+        localStorage.setItem(REMINDERS_KEY, JSON.stringify(allReminders));
     }
-  }
 
-  function escapeHTML(value) {
-    return String(value ?? "").replace(/[&<>"']/g, (character) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    })[character]);
-  }
+    function readSettings() {
+        try {
+            return JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
+        } catch {
+            return {};
+        }
+    }
 
-  function localDateString(date = new Date()) {
-    const local = new Date(
-      date.getTime() - date.getTimezoneOffset() * 60000
-    );
-    return local.toISOString().slice(0, 10);
-  }
+    function setText(id, value) {
+        const element = $(id);
+        if (element) element.textContent = value;
+    }
 
-  function daysUntil(dateString) {
-    if (!dateString) return null;
+    function escapeHTML(value) {
+        return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        })[character]);
+    }
 
-    const today = new Date(localDateString() + "T00:00:00");
-    const expiry = new Date(String(dateString).slice(0, 10) + "T00:00:00");
+    function firstValue(object, keys, fallback = "") {
+        for (const key of keys) {
+            if (
+                object &&
+                object[key] !== undefined &&
+                object[key] !== null &&
+                object[key] !== ""
+            ) {
+                return object[key];
+            }
+        }
 
-    if (Number.isNaN(expiry.getTime())) return null;
+        return fallback;
+    }
 
-    return Math.round((expiry - today) / (1000 * 60 * 60 * 24));
-  }
+    function normalize(value) {
+        return String(value ?? "").trim().toLowerCase();
+    }
 
-  function showMessage(message, isError = false) {
-    clearTimeout(messageTimer);
-    $("reminderMessage").textContent = message;
-    $("reminderMessage").style.color = isError ? "#b91c1c" : "";
+    // ==================================================
+    // DATE HELPERS
+    // ==================================================
 
-    messageTimer = setTimeout(() => {
-      $("reminderMessage").textContent = "";
-      $("reminderMessage").style.color = "";
-    }, 4000);
-  }
+    function parseDate(value) {
+        if (!value) return null;
 
-  function getReminderMap() {
-    return new Map(
-      readArray(REMINDERS_KEY).map((item) => [
-        String(item.policyId),
-        item
-      ])
-    );
-  }
+        if (typeof value === "string") {
+            const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
 
-  function buildRows() {
-    const customers = readArray(CUSTOMERS_KEY);
-    const policies = readArray(POLICIES_KEY);
-    const reminderMap = getReminderMap();
+            if (match) {
+                const date = new Date(
+                    Number(match[1]),
+                    Number(match[2]) - 1,
+                    Number(match[3])
+                );
 
-    reminderRows = policies
-      .filter((policy) => policy.expiryDate)
-      .map((policy) => {
-        const customer = customers.find(
-          (item) => String(item.id) === String(policy.customerId)
+                return Number.isNaN(date.getTime()) ? null : date;
+            }
+        }
+
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function todayStart() {
+        const date = new Date();
+        date.setHours(0, 0, 0, 0);
+        return date;
+    }
+
+    function daysUntil(expiryValue) {
+        const expiry = parseDate(expiryValue);
+        if (!expiry) return null;
+
+        expiry.setHours(0, 0, 0, 0);
+
+        return Math.round(
+            (expiry.getTime() - todayStart().getTime()) / 86400000
         );
+    }
 
-        const saved = reminderMap.get(String(policy.id)) || {};
+    function formatDate(value) {
+        const date = parseDate(value);
+        if (!date) return "Not available";
+
+        return date.toLocaleDateString("en-IN", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+        });
+    }
+
+    // ==================================================
+    // CUSTOMER AND POLICY HELPERS
+    // ==================================================
+
+    function customerId(customer) {
+        return String(firstValue(customer, [
+            "id", "customerId", "customer_id"
+        ]));
+    }
+
+    function customerName(customer) {
+        return firstValue(customer, [
+            "name", "customerName", "fullName"
+        ], "Unknown Customer");
+    }
+
+    function customerPhone(customer) {
+        return String(firstValue(customer, [
+            "phone", "mobile", "phoneNumber", "mobileNumber"
+        ]));
+    }
+
+    function vehicleNumber(item) {
+        return String(firstValue(item, [
+            "vehicleNumber", "vehicleNo", "vehicle_number",
+            "registrationNumber", "registrationNo"
+        ]));
+    }
+
+    function policyNumber(policy) {
+        return String(firstValue(policy, [
+            "policyNumber", "policyNo", "policyId", "id"
+        ]));
+    }
+
+    function expiryDate(policy) {
+        return firstValue(policy, [
+            "expiryDate", "endDate", "expiry_date", "policyExpiryDate"
+        ]);
+    }
+
+    function premiumAmount(policy) {
+        const amount = Number(firstValue(policy, [
+            "premium", "premiumAmount", "amount", "totalPremium"
+        ], 0));
+
+        return Number.isFinite(amount) ? amount : 0;
+    }
+
+    function customerForPolicy(policy, customers) {
+        const id = String(firstValue(policy, [
+            "customerId", "customer_id"
+        ]));
+
+        if (id) {
+            const match = customers.find(
+                customer => customerId(customer) === id
+            );
+
+            if (match) return match;
+        }
+
+        const directName = firstValue(policy, [
+            "customerName", "customer_name"
+        ]);
 
         return {
-          policyId: String(policy.id),
-          customerId: customer ? String(customer.id) : "",
-          customerName: customer?.name || policy.customerName || "Unknown customer",
-          phone: customer?.phone || "",
-          vehicleNumber: policy.vehicleNumber ||
-            customer?.vehicleNumber || "",
-          policyNumber: policy.policyNumber || "",
-          expiryDate: String(policy.expiryDate).slice(0, 10),
-          premium: Number(policy.premium) || 0,
-          daysLeft: daysUntil(policy.expiryDate),
-          status: saved.status || "Pending",
-          lastContacted: saved.lastContacted || "",
-          notes: saved.notes || ""
+            id,
+            name: directName || "Unknown Customer",
+            phone: firstValue(policy, ["phone", "mobile"])
         };
-      })
-      .filter((row) => row.daysLeft !== null)
-      .sort((a, b) => a.daysLeft - b.daysLeft);
-  }
-
-  function getFilteredRows() {
-    const search = $("reminderSearch").value.trim().toLowerCase();
-    const period = $("reminderDays").value;
-    const status = $("reminderStatusFilter").value;
-
-    return reminderRows.filter((row) => {
-      const searchable = [
-        row.customerName,
-        row.phone,
-        row.vehicleNumber,
-        row.policyNumber
-      ].join(" ").toLowerCase();
-
-      const withinPeriod = period === "all" ||
-        (row.daysLeft <= Number(period));
-
-      return searchable.includes(search) &&
-        withinPeriod &&
-        (!status || row.status === status);
-    });
-  }
-
-  function updateStats() {
-    const allRows = reminderRows;
-
-    $("dueSoonCount").textContent = allRows.filter(
-      (row) => row.daysLeft >= 0 && row.daysLeft <= 30
-    ).length;
-
-    $("expiredCount").textContent = allRows.filter(
-      (row) => row.daysLeft < 0
-    ).length;
-
-    $("contactedCount").textContent = allRows.filter(
-      (row) => row.status === "Contacted"
-    ).length;
-
-    $("followupCount").textContent = allRows.filter(
-      (row) => row.status === "Pending" && row.daysLeft <= 30
-    ).length;
-  }
-
-  function statusClass(status) {
-    if (status === "Contacted") return "reminder-status-contacted";
-    if (status === "Renewed") return "reminder-status-renewed";
-    return "reminder-status-pending";
-  }
-
-  function renderTable() {
-    const rows = getFilteredRows();
-    const pageSize = 10;
-    const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
-
-    currentPage = Math.min(currentPage, totalPages);
-
-    const start = (currentPage - 1) * pageSize;
-    const pageRows = rows.slice(start, start + pageSize);
-
-    if (!pageRows.length) {
-      $("remindersTableBody").innerHTML = `
-        <tr>
-          <td colspan="8" class="reminder-empty">
-            No policies match your filters. Check your saved policies or select
-            a wider expiry period.
-          </td>
-        </tr>`;
-    } else {
-      $("remindersTableBody").innerHTML = pageRows.map((row) => {
-        const dayClass = row.daysLeft < 0
-          ? "reminder-days-overdue"
-          : row.daysLeft <= 7
-            ? "reminder-days-soon"
-            : "reminder-days-normal";
-
-        const dayText = row.daysLeft < 0
-          ? `${Math.abs(row.daysLeft)} days overdue`
-          : row.daysLeft === 0
-            ? "Expires today"
-            : `${row.daysLeft} days`;
-
-        return `
-          <tr>
-            <td>${escapeHTML(row.customerName)}</td>
-            <td>${escapeHTML(row.phone || "—")}</td>
-            <td>${escapeHTML(row.vehicleNumber || "—")}</td>
-            <td>${escapeHTML(row.policyNumber || "—")}</td>
-            <td>${escapeHTML(row.expiryDate)}</td>
-            <td class="reminder-days ${dayClass}">
-              ${escapeHTML(dayText)}
-            </td>
-            <td>
-              <span class="reminder-status ${statusClass(row.status)}">
-                ${escapeHTML(row.status)}
-              </span>
-            </td>
-            <td>
-              <div class="reminder-actions">
-                <button type="button" class="reminder-action-btn"
-                  data-action="whatsapp" data-id="${escapeHTML(row.policyId)}">
-                  WhatsApp
-                </button>
-                <button type="button" class="reminder-action-btn"
-                  data-action="status" data-id="${escapeHTML(row.policyId)}">
-                  Update
-                </button>
-              </div>
-            </td>
-          </tr>`;
-      }).join("");
     }
 
-    $("reminderPageInfo").textContent =
-      `Showing ${rows.length ? start + 1 : 0}–${Math.min(start + pageSize, rows.length)} of ${rows.length} records`;
+    function policyStatus(policy) {
+        const status = normalize(policy.status);
 
-    $("reminderPageNumber").textContent =
-      `Page ${currentPage} of ${totalPages}`;
+        if (["expired", "lapsed"].includes(status)) return "Expired";
+        if (["cancelled", "canceled", "inactive"].includes(status)) {
+            return "Inactive";
+        }
 
-    $("reminderPrevPage").disabled = currentPage <= 1;
-    $("reminderNextPage").disabled = currentPage >= totalPages;
-  }
+        const days = daysUntil(expiryDate(policy));
 
-  function refresh() {
-    buildRows();
+        if (days !== null && days < 0) return "Expired";
+
+        return "Active";
+    }
+
+    // ==================================================
+    // REMINDER STATUS STORAGE
+    // ==================================================
+
+    function loadExistingReminders() {
+        return readArray(REMINDERS_KEY);
+    }
+
+    function reminderKey(item) {
+        return String(item.policyNumber || item.policyNo || item.policyId || "");
+    }
+
+    function createReminderFromPolicy(policy, customers, existing) {
+        const customer = customerForPolicy(policy, customers);
+        const number = policyNumber(policy);
+        const saved = existing.find((item) =>
+            reminderKey(item) === number
+        );
+
+        return {
+            id: saved?.id || number,
+            policyNumber: number,
+            customerId: customerId(customer),
+            customerName: customerName(customer),
+            phone: customerPhone(customer) || customerPhone(policy),
+            vehicleNumber: vehicleNumber(policy),
+            expiryDate: expiryDate(policy),
+            premium: premiumAmount(policy),
+            status: saved?.status || "Pending",
+            contactedAt: saved?.contactedAt || "",
+            renewedAt: saved?.renewedAt || ""
+        };
+    }
+
+    function loadReminders() {
+        const customers = readArray(CUSTOMERS_KEY);
+        const policies = readArray(POLICIES_KEY);
+        const existing = loadExistingReminders();
+
+        const policyReminders = policies
+            .filter(policy => expiryDate(policy))
+            .filter(policy => policyStatus(policy) !== "Inactive")
+            .map(policy =>
+                createReminderFromPolicy(policy, customers, existing)
+            );
+
+        // Keep previously saved reminders if their policy is no longer
+        // in the policy list, so the user's follow-up status is preserved.
+        const policyNumbers = new Set(
+            policyReminders.map(reminderKey)
+        );
+
+        const standaloneReminders = existing.filter(reminder =>
+            !policyNumbers.has(reminderKey(reminder))
+        );
+
+        allReminders = [...policyReminders, ...standaloneReminders];
+
+        saveReminders();
+    }
+
+    // ==================================================
+    // FILTERING
+    // ==================================================
+
+    function getExpiryLimit() {
+        const value = $("reminderDays")?.value || "30";
+
+        if (value === "all") return Infinity;
+
+        const days = Number(value);
+        return Number.isFinite(days) ? days : 30;
+    }
+
+    function matchesExpiryLimit(reminder) {
+        const days = daysUntil(reminder.expiryDate);
+        const limit = getExpiryLimit();
+
+        // Include expired policies even when the user selects 7/15/30 days.
+        if (days !== null && days < 0) return true;
+
+        return days !== null && days <= limit;
+    }
+
+    function matchesSearch(reminder) {
+        const search = normalize($("reminderSearch")?.value);
+
+        if (!search) return true;
+
+        return [
+            reminder.customerName,
+            reminder.phone,
+            reminder.vehicleNumber,
+            reminder.policyNumber
+        ].some(value => normalize(value).includes(search));
+    }
+
+    function matchesStatus(reminder) {
+        const selected = $("reminderStatusFilter")?.value || "";
+
+        if (!selected) return true;
+
+        return normalize(reminder.status) === normalize(selected);
+    }
+
+    function applyFilters() {
+        filteredReminders = allReminders
+            .filter(matchesExpiryLimit)
+            .filter(matchesSearch)
+            .filter(matchesStatus)
+            .sort((a, b) => {
+                const aDays = daysUntil(a.expiryDate) ?? Infinity;
+                const bDays = daysUntil(b.expiryDate) ?? Infinity;
+                return aDays - bDays;
+            });
+
+        const totalPages = Math.max(
+            1,
+            Math.ceil(filteredReminders.length / PAGE_SIZE)
+        );
+
+        if (currentPage > totalPages) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        renderTable();
+        updatePagination();
+    }
+
+    // ==================================================
+    // SUMMARY CARDS
+    // ==================================================
+
+    function updateStats() {
+        const dueSoon = allReminders.filter(reminder => {
+            const days = daysUntil(reminder.expiryDate);
+            return days !== null && days >= 0 && days <= 30 &&
+                reminder.status !== "Renewed";
+        }).length;
+
+        const expired = allReminders.filter(reminder => {
+            const days = daysUntil(reminder.expiryDate);
+            return days !== null && days < 0 &&
+                reminder.status !== "Renewed";
+        }).length;
+
+        const contacted = allReminders.filter(reminder =>
+            reminder.status === "Contacted"
+        ).length;
+
+        const followup = allReminders.filter(reminder =>
+            reminder.status === "Pending" &&
+            reminder.status !== "Renewed"
+        ).length;
+
+        setText("dueSoonCount", dueSoon);
+        setText("expiredCount", expired);
+        setText("contactedCount", contacted);
+        setText("followupCount", followup);
+    }
+
+    // ==================================================
+    // TABLE RENDERING
+    // ==================================================
+
+    function statusBadge(status) {
+        const safeStatus = escapeHTML(status || "Pending");
+        const cssStatus = normalize(status).replace(/[^a-z]/g, "");
+
+        return `<span class="status-badge status-${cssStatus}">${safeStatus}</span>`;
+    }
+
+    function daysLabel(days) {
+        if (days === null) return "Unknown";
+        if (days < 0) return `${Math.abs(days)} days overdue`;
+        if (days === 0) return "Expires today";
+        return `${days} days`;
+    }
+
+    function renderTable() {
+        const tbody = $("remindersTableBody");
+        if (!tbody) return;
+
+        const start = (currentPage - 1) * PAGE_SIZE;
+        const pageItems = filteredReminders.slice(start, start + PAGE_SIZE);
+
+        if (pageItems.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="empty-state">
+                        No renewal reminders found.
+                    </td>
+                </tr>
+            `;
+
+            setText("reminderMessage", "No reminders match the selected filters.");
+            return;
+        }
+
+        tbody.innerHTML = pageItems.map((reminder) => {
+            const days = daysUntil(reminder.expiryDate);
+            const phone = String(reminder.phone || "").replace(/\D/g, "");
+
+            const whatsappUrl = phone
+                ? `https://wa.me/${encodeURIComponent(phone)}?text=${encodeURIComponent(
+                    buildWhatsAppMessage(reminder)
+                )}`
+                : "";
+
+            const canContact = Boolean(whatsappUrl);
+            const isRenewed = reminder.status === "Renewed";
+
+            return `
+                <tr>
+                    <td>
+                        <strong>${escapeHTML(reminder.customerName)}</strong>
+                    </td>
+                    <td>${escapeHTML(reminder.phone || "Not available")}</td>
+                    <td>${escapeHTML(reminder.vehicleNumber || "—")}</td>
+                    <td>${escapeHTML(reminder.policyNumber || "—")}</td>
+                    <td>${escapeHTML(formatDate(reminder.expiryDate))}</td>
+                    <td>${escapeHTML(daysLabel(days))}</td>
+                    <td>${statusBadge(reminder.status)}</td>
+                    <td>
+                        <div class="table-actions">
+                            ${
+                                canContact && !isRenewed
+                                    ? `<a class="secondary-btn"
+                                          href="${whatsappUrl}"
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          data-action="whatsapp"
+                                          data-policy="${escapeHTML(reminder.policyNumber)}">
+                                          WhatsApp
+                                       </a>`
+                                    : ""
+                            }
+
+                            ${
+                                reminder.status === "Pending"
+                                    ? `<button class="secondary-btn"
+                                          type="button"
+                                          data-action="contacted"
+                                          data-policy="${escapeHTML(reminder.policyNumber)}">
+                                          Mark Contacted
+                                       </button>`
+                                    : ""
+                            }
+
+                            ${
+                                !isRenewed
+                                    ? `<button class="secondary-btn"
+                                          type="button"
+                                          data-action="renewed"
+                                          data-policy="${escapeHTML(reminder.policyNumber)}">
+                                          Mark Renewed
+                                       </button>`
+                                    : ""
+                            }
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join("");
+
+        setText(
+            "reminderMessage",
+            `${filteredReminders.length} reminder(s) found. WhatsApp messages are prepared for review, not sent automatically.`
+        );
+    }
+
+    // ==================================================
+    // WHATSAPP MESSAGE
+    // ==================================================
+
+    function buildWhatsAppMessage(reminder) {
+        const settings = readSettings();
+        const businessName = settings.businessName || "Popoye Insurance";
+        const expiry = formatDate(reminder.expiryDate);
+        const premium = new Intl.NumberFormat("en-IN", {
+            style: "currency",
+            currency: "INR",
+            maximumFractionDigits: 2
+        }).format(Number(reminder.premium) || 0);
+
+        return [
+            `Hello ${reminder.customerName},`,
+            "",
+            `Greetings from ${businessName}.`,
+            "",
+            "This is a reminder about your two-wheeler insurance renewal.",
+            `Vehicle Number: ${reminder.vehicleNumber || "Not available"}`,
+            `Policy Number: ${reminder.policyNumber || "Not available"}`,
+            `Policy Expiry Date: ${expiry}`,
+            `Premium Amount: ${premium}`,
+            "",
+            "Please contact us to renew your policy and avoid a lapse in coverage.",
+            "",
+            "Thank you,",
+            businessName
+        ].join("\n");
+    }
+
+    // ==================================================
+    // REMINDER ACTIONS
+    // ==================================================
+
+    function updateReminderStatus(policyNumberValue, status) {
+        const reminder = allReminders.find(item =>
+            String(item.policyNumber) === String(policyNumberValue)
+        );
+
+        if (!reminder) {
+            setText("reminderMessage", "Reminder record not found.");
+            return;
+        }
+
+        reminder.status = status;
+
+        if (status === "Contacted") {
+            reminder.contactedAt = new Date().toISOString();
+        }
+
+        if (status === "Renewed") {
+            reminder.renewedAt = new Date().toISOString();
+        }
+
+        saveReminders();
+        updateStats();
+        applyFilters();
+
+        setText(
+            "reminderMessage",
+            `${reminder.customerName}: reminder marked as ${status.toLowerCase()}.`
+        );
+    }
+
+    const remindersTableBody = $("remindersTableBody");
+
+    if (remindersTableBody) {
+        remindersTableBody.addEventListener("click", function (event) {
+            const button = event.target.closest("[data-action]");
+            if (!button) return;
+
+            const action = button.dataset.action;
+            const policy = button.dataset.policy;
+
+            if (action === "contacted") {
+                updateReminderStatus(policy, "Contacted");
+            }
+
+            if (action === "renewed") {
+                const confirmed = window.confirm(
+                    "Mark this policy as renewed in the reminder list?"
+                );
+
+                if (confirmed) {
+                    updateReminderStatus(policy, "Renewed");
+                }
+            }
+
+            // Clicking WhatsApp opens the prepared message. This only marks
+            // the reminder contacted after the user confirms they contacted
+            // the customer, rather than pretending a message was sent.
+            if (action === "whatsapp") {
+                const reminder = allReminders.find(item =>
+                    String(item.policyNumber) === String(policy)
+                );
+
+                if (reminder) {
+                    const confirmed = window.confirm(
+                        "After reviewing the WhatsApp message, mark this reminder as contacted?"
+                    );
+
+                    if (confirmed) {
+                        updateReminderStatus(policy, "Contacted");
+                    }
+                }
+            }
+        });
+    }
+
+    // ==================================================
+    // PAGINATION
+    // ==================================================
+
+    function updatePagination() {
+        const total = filteredReminders.length;
+        const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+        const start = total === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+        const end = Math.min(currentPage * PAGE_SIZE, total);
+
+        setText("reminderPageInfo", `Showing ${start}-${end} of ${total} records`);
+        setText("reminderPageNumber", `Page ${currentPage} of ${totalPages}`);
+
+        if ($("reminderPrevPage")) {
+            $("reminderPrevPage").disabled = currentPage <= 1;
+        }
+
+        if ($("reminderNextPage")) {
+            $("reminderNextPage").disabled = currentPage >= totalPages;
+        }
+    }
+
+    if ($("reminderPrevPage")) {
+        $("reminderPrevPage").addEventListener("click", function () {
+            if (currentPage > 1) {
+                currentPage--;
+                applyFilters();
+            }
+        });
+    }
+
+    if ($("reminderNextPage")) {
+        $("reminderNextPage").addEventListener("click", function () {
+            const totalPages = Math.max(
+                1,
+                Math.ceil(filteredReminders.length / PAGE_SIZE)
+            );
+
+            if (currentPage < totalPages) {
+                currentPage++;
+                applyFilters();
+            }
+        });
+    }
+
+    // ==================================================
+    // FILTER EVENTS
+    // ==================================================
+
+    if ($("reminderDays")) {
+        $("reminderDays").addEventListener("change", function () {
+            currentPage = 1;
+            applyFilters();
+        });
+    }
+
+    if ($("reminderSearch")) {
+        $("reminderSearch").addEventListener("input", function () {
+            currentPage = 1;
+            applyFilters();
+        });
+    }
+
+    if ($("reminderStatusFilter")) {
+        $("reminderStatusFilter").addEventListener("change", function () {
+            currentPage = 1;
+            applyFilters();
+        });
+    }
+
+    // ==================================================
+    // REFRESH BUTTON
+    // ==================================================
+
+    if ($("refreshReminders")) {
+        $("refreshReminders").addEventListener("click", function () {
+            loadReminders();
+            updateStats();
+            currentPage = 1;
+            applyFilters();
+
+            setText("reminderMessage", "Renewal reminders refreshed.");
+        });
+    }
+
+    // ==================================================
+    // SIDEBAR MENU
+    // ==================================================
+
+    if ($("menuToggle")) {
+        $("menuToggle").addEventListener("click", function () {
+            const sidebar = $("sidebar");
+
+            if (sidebar) {
+                sidebar.classList.toggle("active");
+            }
+
+            document.body.classList.toggle("sidebar-open");
+        });
+    }
+
+    document.querySelectorAll(".sidebar-nav a").forEach((link) => {
+        link.addEventListener("click", function () {
+            $("sidebar")?.classList.remove("active");
+            document.body.classList.remove("sidebar-open");
+        });
+    });
+
+    // ==================================================
+    // INITIALIZE
+    // ==================================================
+
+    loadReminders();
     updateStats();
-    renderTable();
-  }
-
-  function updateReminderStatus(policyId, status) {
-    const reminders = readArray(REMINDERS_KEY);
-    const existing = reminders.find(
-      (item) => String(item.policyId) === String(policyId)
-    );
-
-    const updated = {
-      ...(existing || {}),
-      policyId: String(policyId),
-      status,
-      lastContacted: status === "Contacted"
-        ? new Date().toISOString()
-        : existing?.lastContacted || "",
-      updatedAt: new Date().toISOString()
-    };
-
-    const next = reminders.filter(
-      (item) => String(item.policyId) !== String(policyId)
-    );
-
-    next.push(updated);
-
-    if (!saveReminders(next)) return false;
-
-    refresh();
-    return true;
-  }
-
-  function prepareWhatsApp(policyId) {
-    const row = reminderRows.find(
-      (item) => String(item.policyId) === String(policyId)
-    );
-
-    if (!row) {
-      showMessage("Policy reminder could not be found.", true);
-      return;
-    }
-
-    const digits = String(row.phone).replace(/\D/g, "");
-
-    if (!digits) {
-      showMessage("This customer does not have a phone number saved.", true);
-      return;
-    }
-
-    // WhatsApp numbers should include the country code.
-    // For Indian mobile numbers, add 91 when a 10-digit number is stored.
-    const phone = digits.length === 10 ? "91" + digits : digits;
-
-    const expiryText = new Date(
-      row.expiryDate + "T00:00:00"
-    ).toLocaleDateString("en-IN");
-
-    const message =
-      `Hello ${row.customerName}, this is Popoye Insurance. ` +
-      `Your two-wheeler insurance policy ${row.policyNumber || ""} ` +
-      `for vehicle ${row.vehicleNumber || ""} expires on ${expiryText}. ` +
-      `Please contact us to renew your policy. ` +
-      `This is a renewal reminder; please verify the details before sending.`;
-
-    const url = "https://wa.me/" + phone +
-      "?text=" + encodeURIComponent(message);
-
-    // Opens WhatsApp with a prepared message. The user must review and send it.
-    window.open(url, "_blank", "noopener,noreferrer");
-
-    const shouldMark = window.confirm(
-      "WhatsApp has been opened with a prepared message. Mark this reminder as Contacted?"
-    );
-
-    if (shouldMark) {
-      if (updateReminderStatus(policyId, "Contacted")) {
-        showMessage("Reminder marked as contacted.");
-      }
-    }
-  }
-
-  function updateStatusManually(policyId) {
-    const row = reminderRows.find(
-      (item) => String(item.policyId) === String(policyId)
-    );
-
-    if (!row) return;
-
-    const choice = window.prompt(
-      "Enter reminder status:\n1 = Pending\n2 = Contacted\n3 = Renewed",
-      row.status === "Pending" ? "2" : row.status === "Contacted" ? "3" : "1"
-    );
-
-    if (choice === null) return;
-
-    const statuses = {
-      "1": "Pending",
-      "2": "Contacted",
-      "3": "Renewed"
-    };
-
-    const status = statuses[choice.trim()];
-
-    if (!status) {
-      showMessage("Enter 1, 2 or 3 to select a status.", true);
-      return;
-    }
-
-    if (updateReminderStatus(policyId, status)) {
-      showMessage("Reminder status updated.");
-    }
-  }
-
-  function exportCSV() {
-    const rows = getFilteredRows();
-
-    if (!rows.length) {
-      showMessage("There are no reminders to export.", true);
-      return;
-    }
-
-    const headers = [
-      "Customer",
-      "Phone",
-      "Vehicle Number",
-      "Policy Number",
-      "Expiry Date",
-      "Days Left",
-      "Premium",
-      "Reminder Status"
-    ];
-
-    const data = rows.map((row) => [
-      row.customerName,
-      row.phone,
-      row.vehicleNumber,
-      row.policyNumber,
-      row.expiryDate,
-      row.daysLeft,
-      row.premium,
-      row.status
-    ]);
-
-    const csvValue = (value) =>
-      '"' + String(value ?? "").replace(/"/g, '""') + '"';
-
-    const csv = [headers, ...data]
-      .map((line) => line.map(csvValue).join(","))
-      .join("\r\n");
-
-    const blob = new Blob(["\uFEFF" + csv], {
-      type: "text/csv;charset=utf-8;"
-    });
-
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-
-    link.href = url;
-    link.download = "popoye-renewal-reminders.csv";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-
-    showMessage("Reminder report exported.");
-  }
-
-  $("refreshReminders").addEventListener("click", () => {
-    currentPage = 1;
-    refresh();
-    showMessage("Reminder list refreshed.");
-  });
-
-  $("reminderDays").addEventListener("change", () => {
-    currentPage = 1;
-    renderTable();
-  });
-
-  $("reminderSearch").addEventListener("input", () => {
-    currentPage = 1;
-    renderTable();
-  });
-
-  $("reminderStatusFilter").addEventListener("change", () => {
-    currentPage = 1;
-    renderTable();
-  });
-
-  $("remindersTableBody").addEventListener("click", (event) => {
-    const button = event.target.closest("button[data-action]");
-    if (!button) return;
-
-    if (button.dataset.action === "whatsapp") {
-      prepareWhatsApp(button.dataset.id);
-    } else if (button.dataset.action === "status") {
-      updateStatusManually(button.dataset.id);
-    }
-  });
-
-  $("reminderPrevPage").addEventListener("click", () => {
-    if (currentPage > 1) {
-      currentPage--;
-      renderTable();
-    }
-  });
-
-  $("reminderNextPage").addEventListener("click", () => {
-    const totalPages = Math.max(
-      1,
-      Math.ceil(getFilteredRows().length / 10)
-    );
-
-    if (currentPage < totalPages) {
-      currentPage++;
-      renderTable();
-    }
-  });
-
-  $("exportReminders").addEventListener("click", exportCSV);
-
-  $("menuToggle").addEventListener("click", () => {
-    $("sidebar").classList.toggle("sidebar-open");
-  });
-
-  $("logoutBtn").addEventListener("click", () => {
-    if (window.confirm("Are you sure you want to log out?")) {
-      localStorage.removeItem(LOGIN_KEY);
-      window.location.href = "login.html";
-    }
-  });
-
-  refresh();
+    applyFilters();
 });

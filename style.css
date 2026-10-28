@@ -4,12 +4,11 @@
     --teal: #093262;
     --background: #dfeaed;
     --surface: #f2f0e9;
-    --text: #010810;
-    --muted: #2c0340;
+    --text: #24364B;
+    --muted: #718096;
     --border: #fffbfb;
     --danger: #a05f5f;
-    --shadow: 0 10px 35px rgba(20, 43, 74, 0.08);
-}
+} 
 
 * {
     margin: 0;
@@ -21,7 +20,7 @@ body {
     font-family: Arial, Helvetica, sans-serif;
     background: var(--background);
     color: var(--text);
-    font-size: 15px;
+    font-size: 14px;
     line-height: 1.6;
 }
 
@@ -41,7 +40,7 @@ button {
     align-items: center;
     justify-content: center;
     padding: 24px;
-    background: linear-gradient(135deg, #F4F7FB, #E5F4F2);
+    background: linear-gradient(135deg, #607da3, #92b1ad);
 }
 
 .login-container {
@@ -58,7 +57,7 @@ button {
 
 .login-brand {
     background: var(--navy);
-    color: white;
+    color: rgb(161, 42, 42);
     padding: 55px 42px;
     display: flex;
     flex-direction: column;
@@ -69,20 +68,20 @@ button {
     width: 110px;
     height: 110px;
     object-fit: contain;
-    background: white;
+    background: rgb(235, 163, 163);
     border-radius: 14px;
-    padding: 8px;
-    margin-bottom: 25px;
+    padding: -1px;
+    margin-bottom: 40px;
 }
 
 .login-brand h1 {
-    font-size: 29px;
+    font-size: 35px;
     line-height: 1.3;
     margin-bottom: 12px;
 }
 
 .login-brand > p {
-    color: #D6E1EF;
+    color: #c5d1e1;
     max-width: 340px;
 }
 
@@ -92,7 +91,7 @@ button {
 
 .login-features p {
     margin: 12px 0;
-    color: #F0F7FF;
+    color: #a8c0dc;
 }
 
 .login-form-section {
@@ -131,7 +130,7 @@ button {
     padding: 12px 14px;
     border: 1px solid var(--border);
     border-radius: 8px;
-    background: white;
+    background: rgb(244, 241, 241);
     color: var(--text);
     outline: none;
 }
@@ -148,13 +147,13 @@ button {
     border-radius: 8px;
     padding: 12px 18px;
     background: var(--teal);
-    color: white;
+    color: rgb(248, 246, 246);
     font-weight: 600;
     transition: background 0.2s;
 }
 
 .primary-btn:hover {
-    background: #0B7D73;
+    background: #f6f7f7;
 }
 
 .login-btn {
@@ -206,7 +205,7 @@ button {
 .data-table {
     width: 100%;
     border-collapse: collapse;
-    background: white;
+    background: rgb(239, 239, 233);
 }
 
 .data-table th,
@@ -268,7 +267,7 @@ button {
     height: 100vh;
     padding: 24px 16px;
     background: var(--navy);
-    color: #FFFFFF;
+    color: #f0ebeb;
     overflow-y: auto;
 }
 
@@ -277,7 +276,7 @@ button {
     align-items: center;
     gap: 12px;
     padding: 0 8px 28px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    border-bottom: 1px solid rgba(242, 239, 239, 0.15);
 }
 
 .sidebar-brand img {
@@ -285,7 +284,7 @@ button {
     height: 48px;
     padding: 3px;
     object-fit: contain;
-    background: #FFFFFF;
+    background: #decaca;
     border-radius: 10px;
 }
 
@@ -296,14 +295,14 @@ button {
 
 .sidebar-brand span {
     display: block;
-    color: #B9D4E5;
+    color: #91c3e2;
     font-size: 10px;
     letter-spacing: 2px;
 }
 
 .sidebar-label {
     padding: 26px 12px 12px;
-    color: #AFC1D5;
+    color: #dd8282;
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 1.5px;
@@ -321,7 +320,7 @@ button {
     gap: 12px;
     padding: 12px 14px;
     border-radius: 8px;
-    color: #DCE6F1;
+    color: #f3f5f7;
     text-decoration: none;
     font-size: 14px;
     transition: 0.2s;
@@ -329,7 +328,7 @@ button {
 
 .nav-link:hover,
 .nav-link.active {
-    color: #FFFFFF;
+    color: #f9f9f7;
     background: var(--teal);
 }
 
@@ -355,23 +354,23 @@ button {
 
 .sidebar-help p {
     margin-top: 5px;
-    color: #C2D0E0;
+    color: #f4f6f8;
     font-size: 12px;
 }
 
 .logout-btn {
-    width: 100%;
-    margin-top: 12px;
-    padding: 11px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    width: 200%;
+    margin-top: 5px;
+    padding: 5px;
+    border: 4px solid rgba(24, 1, 1, 0.2);
     border-radius: 8px;
-    color: #FFFFFF;
-    background: transparent;
+    color: #270447;
+    background: rgba(31, 5, 144, 0.05);
     text-align: left;
 }
 
 .logout-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(127, 3, 7, 0.1);
 }
 
 .main-content {
@@ -386,7 +385,7 @@ button {
     gap: 16px;
     min-height: 88px;
     padding: 18px 30px;
-    background: #FFFFFF;
+    background: #faf1f1;
     border-bottom: 1px solid var(--border);
 }
 
@@ -434,7 +433,7 @@ button {
     padding: 8px 12px;
     border: 1px solid var(--border);
     border-radius: 8px;
-    background: #FFFFFF;
+    background: #f0eded;
     color: var(--navy);
 }
 
@@ -453,7 +452,7 @@ button {
     border: 1px solid var(--border);
     border-radius: 8px;
     color: var(--navy);
-    background: #FFFFFF;
+    background: #65ccb9;
     font-size: 12px;
 }
 
@@ -496,7 +495,7 @@ button {
 
 .icon-blue {
     color: #2563EB;
-    background: #EAF1FF;
+    background: #081839;
 }
 
 .icon-teal {
@@ -1563,361 +1562,5 @@ button {
   .reminder-table th,
   .reminder-table td {
     padding: 10px;
-  }
-}
-
-/* ==========================================
-   POPOYE INSURANCE - SETTINGS PAGE
-   ========================================== */
-
-.settings-card {
-  margin-bottom: 22px;
-  padding: 25px;
-}
-
-.settings-section-heading {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 25px;
-}
-
-.settings-icon {
-  width: 46px;
-  height: 46px;
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  background: #E7F6F4;
-  border-radius: 12px;
-  font-size: 22px;
-}
-
-.settings-section-heading h3 {
-  margin: 0 0 6px;
-  color: var(--navy, #142B4A);
-  font-size: 18px;
-}
-
-.settings-section-heading p {
-  margin: 0;
-  color: var(--muted, #718096);
-  font-size: 13px;
-}
-
-.settings-form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
-}
-
-.settings-form-grid .form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-}
-
-.settings-form-grid label {
-  color: var(--text, #24364B);
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.settings-form-grid input,
-.settings-form-grid select {
-  width: 100%;
-  min-height: 44px;
-  padding: 11px 13px;
-  border: 1px solid var(--border, #E3EAF2);
-  border-radius: 8px;
-  background: var(--surface, #FFFFFF);
-  color: var(--text, #24364B);
-  font: inherit;
-  font-size: 14px;
-  outline: none;
-}
-
-.settings-form-grid input:focus,
-.settings-form-grid select:focus {
-  border-color: var(--teal, #0D9488);
-  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
-}
-
-.settings-option-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding-top: 22px;
-  margin-top: 22px;
-  border-top: 1px solid var(--border, #E3EAF2);
-}
-
-.settings-option-row strong {
-  display: block;
-  margin-bottom: 6px;
-  color: var(--text, #24364B);
-  font-size: 14px;
-}
-
-.settings-option-row p {
-  margin: 0;
-  color: var(--muted, #718096);
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 48px;
-  height: 27px;
-  flex-shrink: 0;
-}
-
-.switch input {
-  width: 0;
-  height: 0;
-  opacity: 0;
-}
-
-.switch-slider {
-  position: absolute;
-  inset: 0;
-  cursor: pointer;
-  background: #CBD5E1;
-  border-radius: 30px;
-  transition: 0.25s;
-}
-
-.switch-slider::before {
-  position: absolute;
-  content: "";
-  width: 19px;
-  height: 19px;
-  left: 4px;
-  top: 4px;
-  background: #FFFFFF;
-  border-radius: 50%;
-  transition: 0.25s;
-}
-
-.switch input:checked + .switch-slider {
-  background: var(--teal, #0D9488);
-}
-
-.switch input:checked + .switch-slider::before {
-  transform: translateX(21px);
-}
-
-.switch input:focus-visible + .switch-slider {
-  outline: 3px solid rgba(13, 148, 136, 0.3);
-}
-
-.settings-note {
-  margin: 18px 0 0;
-  padding: 12px 14px;
-  border-radius: 8px;
-  background: var(--background, #F4F7FB);
-  color: var(--muted, #718096);
-  font-size: 12px;
-  line-height: 1.7;
-}
-
-.theme-options {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-}
-
-.theme-option {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 9px;
-  padding: 16px;
-  border: 1px solid var(--border, #E3EAF2);
-  border-radius: 12px;
-  cursor: pointer;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.theme-option:has(input:checked) {
-  border-color: var(--teal, #0D9488);
-  box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.1);
-}
-
-.theme-option input {
-  accent-color: var(--teal, #0D9488);
-}
-
-.theme-option strong {
-  color: var(--text, #24364B);
-  font-size: 14px;
-}
-
-.theme-option small {
-  color: var(--muted, #718096);
-  font-size: 12px;
-}
-
-.theme-preview {
-  width: 100%;
-  height: 70px;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 10px;
-  border-radius: 8px;
-}
-
-.theme-preview span {
-  display: block;
-  height: 10px;
-  flex: 1;
-  border-radius: 4px;
-}
-
-.light-preview {
-  background: #F4F7FB;
-  border: 1px solid #E3EAF2;
-}
-
-.light-preview span {
-  background: #FFFFFF;
-  border: 1px solid #E3EAF2;
-}
-
-.dark-preview {
-  background: #172335;
-}
-
-.dark-preview span {
-  background: #2B3B50;
-}
-
-.settings-actions {
-  display: flex;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin: 24px 0 10px;
-}
-
-.settings-message {
-  min-height: 20px;
-  margin: 12px 0;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.settings-message.success {
-  color: #0D9488;
-}
-
-.settings-message.error {
-  color: #DC2626;
-}
-
-/* Dark mode applied by settings.js */
-body.dark-theme {
-  --background: #101827;
-  --surface: #1B2839;
-  --text: #E5EDF7;
-  --muted: #A6B4C7;
-  --border: #334155;
-  background: var(--background);
-  color: var(--text);
-}
-
-body.dark-theme .main-content,
-body.dark-theme .page-container {
-  background: var(--background);
-  color: var(--text);
-}
-
-body.dark-theme .sidebar,
-body.dark-theme .topbar,
-body.dark-theme .card,
-body.dark-theme .settings-card {
-  background: var(--surface);
-  color: var(--text);
-  border-color: var(--border);
-}
-
-body.dark-theme .sidebar-brand h2,
-body.dark-theme .topbar h1,
-body.dark-theme .topbar strong,
-body.dark-theme .page-header h2,
-body.dark-theme .settings-section-heading h3,
-body.dark-theme .settings-option-row strong,
-body.dark-theme .theme-option strong {
-  color: var(--text);
-}
-
-body.dark-theme .nav-link {
-  color: var(--muted);
-}
-
-body.dark-theme .nav-link.active {
-  background: rgba(13, 148, 136, 0.18);
-  color: #5EEAD4;
-}
-
-body.dark-theme .settings-form-grid input,
-body.dark-theme .settings-form-grid select {
-  background: #111C2B;
-  color: var(--text);
-  border-color: var(--border);
-}
-
-body.dark-theme .settings-note {
-  background: #111C2B;
-}
-
-body.dark-theme .settings-option-row {
-  border-color: var(--border);
-}
-
-body.dark-theme .theme-option {
-  border-color: var(--border);
-}
-
-body.dark-theme .theme-option:has(input:checked) {
-  border-color: #0D9488;
-}
-
-body.dark-theme .secondary-btn {
-  color: var(--text);
-  background: #27364A;
-  border-color: var(--border);
-}
-
-body.dark-theme .data-table th,
-body.dark-theme .data-table td {
-  border-color: var(--border);
-}
-
-@media (max-width: 700px) {
-  .settings-form-grid,
-  .theme-options {
-    grid-template-columns: 1fr;
-  }
-
-  .settings-card {
-    padding: 18px;
-  }
-
-  .settings-option-row {
-    align-items: flex-start;
-  }
-
-  .settings-actions {
-    justify-content: stretch;
-  }
-
-  .settings-actions button {
-    flex: 1;
   }
 }

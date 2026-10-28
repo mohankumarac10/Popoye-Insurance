@@ -14,30 +14,42 @@
       <div class="sidebar-brand">
         <img src="images/logo.png" alt="Popoye Insurance Logo">
         <div>
-          <h2>Popoye Insurance</h2>
-          <p>Insurance Management</p>
+          <h2>Popoye</h2>
+          <span>INSURANCE</span>
         </div>
       </div>
 
-      <p class="sidebar-label">MAIN MENU</p>
-      <nav class="sidebar-nav">
-        <a href="dashboard.html" class="nav-link"><span></span> Dashboard</a>
-        <a href="customers.html" class="nav-link"><span></span> Customers</a>
-        <a href="policies.html" class="nav-link"><span></span> Policies</a>
-        <a href="payments.html" class="nav-link active"><span></span> Payments</a>
-        <a href="reports.html" class="nav-link"><span></span> Reports</a>
-        <a href="reminders.html" class="nav-link"><span></span> Reminders</a>
-        <a href="settings.html" class="nav-link"><span></span> Settings</a>
-      </nav>
+      <div class="sidebar-label">MAIN MENU</div>
+      <nav class="sidebar-nav" aria-label="Main navigation">
+        <a href="dashboard.html" class="nav-link"><span class="nav-icon"></span> Dashboard</a>
+        <a href="customers.html" class="nav-link">
+                    <span class="nav-icon"></span>
+                    Customers
+                </a>
+
+                <a href="policies.html" class="nav-link">
+                    <span class="nav-icon"></span>
+                    Policies
+                </a>
+        <a href="payments.html" class="nav-link active"
+               aria-current="page">
+                <span class="nav-icon"></span> Payments
+            </a>
+                <a href="reminders.html" class="nav-link">
+                    <span class="nav-icon"></span>
+                    Reminders
+                </a>
+
+                <a href="reports.html" class="nav-link">
+                    <span class="nav-icon"></span>
+                    Reports
+                </a>     </nav>
 
       <div class="sidebar-bottom">
         <div class="sidebar-help">
-          <strong>Need help?</strong>
-          <p>Manage your insurance payments easily.</p>
+          <strong>Popoye Insurance</strong>
+          <p>Two-wheeler insurance management</p>        
         </div>
-        <button class="logout-btn" id="logoutBtn" type="button">
-          ⇥ Logout
-        </button>
       </div>
     </aside>
 
@@ -50,7 +62,7 @@
           <p>Manage customer premium payments</p>
         </div>
         <div class="topbar-actions">
-          <span class="admin-avatar">P</span>
+          <span class="admin-avatar">A</span>
           <div>
             <strong>Administrator</strong>
             <p>Admin Account</p>
@@ -200,9 +212,6 @@
               <h2>Payment Records</h2>
               <p>Search, filter, edit and export payment records.</p>
             </div>
-            <button class="secondary-btn" id="exportPayments" type="button">
-              Export CSV
-            </button>
           </div>
 
           <div class="payment-toolbar">
