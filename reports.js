@@ -1,81 +1,44 @@
 
 "use strict";
 
-(() => {
-  const PAGE_SIZE = 5;
+document.addEventListener("DOMContentLoaded", () => {
+  // ==========================================
+  // POPOYE INSURANCE - REPORTS MODULE
+  // Reports use LocalStorage demo data
+  // ==========================================
+
   const KEYS = {
     customers: "popoyeCustomers",
     policies: "popoyePolicies",
-    payments: "popoyePayments"
+    payments: "popoyePayments",
+    login: "popoyeLoggedIn"
   };
 
-  if (sessionStorage.getItem("popoyeLoggedIn") !== "true") {
+  if (localStorage.getItem(KEYS.login) !== "true") {
     window.location.href = "login.html";
     return;
   }
 
   const $ = (id) => document.getElementById(id);
 
-  const ui = {
-    preset: $("datePreset"),
-    customFields: $("customDateFields"),
-    start: $("startDate"),
-    end: $("endDate"),
-    status: $("statusFilter"),
-    search: $("searchInput"),
-    error: $("filterError"),
-    table: $("reportTableBody"),
-    empty: $("emptyState"),
-    subtitle: $("reportSubtitle"),
-    collected: $("collectedTotal"),
-    pending: $("pendingTotal"),
-    paidCount: $("paidCount"),
-    failedCount: $("failedCount"),
-    statusDonut: $("statusDonut"),
-    statusTotal: $("statusTotal"),
-    legendPaid: $("legendPaid"),
-    legendPending: $("legendPending"),
-    legendFailed: $("legendFailed"),
-    customerCount: $("customerCount"),
-    policyCount: $("policyCount"),
-    allPaymentCount: $("allPaymentCount"),
-    filteredPaymentCount: $("filteredPaymentCount"),
-    paginationInfo: $("paginationInfo"),
-    pageNumbers: $("pageNumbers"),
-    prev: $("prevPage"),
-    next: $("nextPage")
+  const COLORS = {
+    navy: "#142B4A",
+    teal: "#0D9488",
+    grey: "#94A3B8",
+    amber: "#D97706",
+    red: "#DC2626",
+    grid: "#E3EAF2",
+    text: "#718096"
   };
 
-  let customers = [];
-  let policies = [];
-  let payments = [];
-  let filteredPayments = [];
-  let currentPage = 1;
-  let activeRange = { start: "", end: "" };
-
-  function loadArray(key) {
+  function readArray(key) {
     try {
-      const data = JSON.parse(localStorage.getItem(key) || "[]");
-      return Array.isArray(data) ? data : [];
-    } catch {
+      const value = JSON.parse(localStorage.getItem(key) || "[]");
+      return Array.isArray(value) ? value : [];
+    } catch (error) {
+      console.error("Unable to read " + key, error);
       return [];
     }
-  }
-
-  function refreshData() {
-    customers = loadArray(KEYS.customers);
-    policies = loadArray(KEYS.policies);
-    payments = loadArray(KEYS.payments);
-  }
-
-  function escapeHTML(value) {
-    return String(value ?? "").replace(/[&<>"']/g, char => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    })[char]);
   }
 
   function money(value) {
@@ -86,377 +49,510 @@
     }).format(Number(value) || 0);
   }
 
-  function localDate(date = new Date()) {
-    const adjusted = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-    return adjusted.toISOString().slice(0, 10);
+  function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    })[character]);
   }
 
-  function customerName(customer) {
-    return customer?.name ||
-      customer?.customerName ||
-      customer?.fullName ||
-      "Unknown Customer";
-  }
-
-  function vehicleNumber(customer) {
-    return customer?.vehicleNumber ||
-      customer?.vehicleNo ||
-      customer?.registrationNumber ||
-      "—";
-  }
-
-  function customerFor(payment) {
-    return customers.find(c =>
-      String(c.id) === String(payment.customerId)
-    ) || {
-      name: payment.customerName || "Unknown Customer",
-      vehicleNumber: payment.vehicleNumber || "—"
-    };
-  }
-
-  function policyFor(payment) {
-    return policies.find(p =>
-      String(p.id) === String(payment.policyId) ||
-      String(p.policyNumber) === String(payment.policyNumber)
-    ) || {};
-  }
-
-  function paymentId(payment) {
-    return payment.paymentNumber ||
-      payment.paymentId ||
-      payment.id ||
-      "—";
-  }
-
-  function dateInRange(value, start, end) {
-    if (!value) return false;
-    const date = String(value).slice(0, 10);
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
-    if (start && date < start) return false;
-    if (end && date > end) return false;
-    return true;
+  function localDateString(date = new Date()) {
+    const local = new Date(
+      date.getTime() - date.getTimezoneOffset() * 60000
+    );
+    return local.toISOString().slice(0, 10);
   }
 
   function getRange() {
-    const today = localDate();
-    const preset = ui.preset.value;
+    const period = $("reportPeriod").value;
+    const today = new Date();
+    const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-    if (preset === "today") {
-      return { start: today, end: today };
-    }
-
-    if (preset === "7" || preset === "30") {
-      const days = Number(preset) - 1;
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - days);
-      return { start: localDate(startDate), end: today };
-    }
-
-    if (preset === "month") {
+    if (period === "month") {
       return {
-        start: `${today.slice(0, 7)}-01`,
-        end: today
+        start: localDateString(new Date(today.getFullYear(), today.getMonth(), 1)),
+        end: localDateString(today)
       };
     }
 
-    if (preset === "custom") {
-      return { start: ui.start.value, end: ui.end.value };
+    if (period === "last30") {
+      const from = new Date(start);
+      from.setDate(from.getDate() - 29);
+      return {
+        start: localDateString(from),
+        end: localDateString(today)
+      };
+    }
+
+    if (period === "year") {
+      return {
+        start: localDateString(new Date(today.getFullYear(), 0, 1)),
+        end: localDateString(today)
+      };
     }
 
     return { start: "", end: "" };
   }
 
-  function applyFilters() {
-    const range = getRange();
+  function isInRange(dateValue, range) {
+    if (!range.start && !range.end) return true;
+    if (!dateValue) return false;
 
-    if (range.start && range.end && range.start > range.end) {
-      ui.error.textContent = "The start date must be on or before the end date.";
-      ui.error.hidden = false;
-      return;
-    }
+    const date = String(dateValue).slice(0, 10);
 
-    ui.error.hidden = true;
-    activeRange = range;
-    currentPage = 1;
-    renderReport();
+    return (!range.start || date >= range.start) &&
+      (!range.end || date <= range.end);
   }
 
-  function getFilteredPayments() {
-    const query = ui.search.value.trim().toLowerCase();
+  function getData() {
+    const range = getRange();
+    const allCustomers = readArray(KEYS.customers);
+    const allPolicies = readArray(KEYS.policies);
+    const allPayments = readArray(KEYS.payments);
 
-    return payments.filter(payment => {
-      const customer = customerFor(payment);
-      const policy = policyFor(payment);
-      const date = String(payment.date || "").slice(0, 10);
+    const customers = allCustomers.filter((customer) =>
+      isInRange(customer.createdAt || customer.updatedAt, range)
+    );
 
-      // If a range is active, only include records with a valid date in range.
-      const matchesDate = (!activeRange.start && !activeRange.end) ||
-        dateInRange(date, activeRange.start, activeRange.end);
+    const policies = allPolicies.filter((policy) =>
+      isInRange(
+        policy.createdAt || policy.startDate || policy.updatedAt,
+        range
+      )
+    );
 
-      const matchesStatus = !ui.status.value ||
-        payment.status === ui.status.value;
+    const payments = allPayments.filter((payment) =>
+      isInRange(payment.date || payment.createdAt, range)
+    );
 
-      const searchable = [
-        paymentId(payment),
-        customerName(customer),
-        vehicleNumber(customer),
-        payment.transactionId,
-        payment.referenceId,
-        policy.policyNumber,
-        payment.method
-      ].join(" ").toLowerCase();
+    return { customers, policies, payments };
+  }
 
-      return matchesDate && matchesStatus &&
-        (!query || searchable.includes(query));
-    }).sort((a, b) =>
-      String(b.date || "").localeCompare(String(a.date || ""))
+  function getPolicyStatus(policy) {
+    if (policy.status === "Pending") return "Pending";
+
+    if (!policy.expiryDate) {
+      return policy.status || "Unknown";
+    }
+
+    const today = localDateString();
+    const expiry = String(policy.expiryDate).slice(0, 10);
+
+    if (expiry < today) return "Expired";
+
+    const expiryDate = new Date(expiry + "T00:00:00");
+    const todayDate = new Date(today + "T00:00:00");
+    const daysLeft = Math.round(
+      (expiryDate - todayDate) / (1000 * 60 * 60 * 24)
+    );
+
+    if (daysLeft <= 30) return "Expiring";
+    return "Active";
+  }
+
+  function drawBarChart(canvasId, legendId, labels, values, colors) {
+    const canvas = $(canvasId);
+    const context = canvas.getContext("2d");
+    const container = canvas.parentElement;
+    const width = Math.max(container.clientWidth, 240);
+    const height = Math.max(container.clientHeight, 200);
+    const ratio = window.devicePixelRatio || 1;
+
+    canvas.width = Math.round(width * ratio);
+    canvas.height = Math.round(height * ratio);
+    canvas.style.width = width + "px";
+    canvas.style.height = height + "px";
+
+    context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    context.clearRect(0, 0, width, height);
+
+    const padding = { top: 22, right: 18, bottom: 48, left: 38 };
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+    const maxValue = Math.max(...values, 1);
+    const step = Math.max(1, Math.ceil(maxValue / 4));
+    const maxAxis = step * 4;
+
+    context.font = "11px Arial";
+    context.textAlign = "right";
+    context.textBaseline = "middle";
+    context.fillStyle = COLORS.text;
+    context.strokeStyle = COLORS.grid;
+    context.lineWidth = 1;
+
+    for (let tick = 0; tick <= maxAxis; tick += step) {
+      const y = padding.top + chartHeight -
+        (tick / maxAxis) * chartHeight;
+
+      context.beginPath();
+      context.moveTo(padding.left, y);
+      context.lineTo(width - padding.right, y);
+      context.stroke();
+
+      context.fillText(String(tick), padding.left - 8, y);
+    }
+
+    const groupWidth = chartWidth / labels.length;
+    const barWidth = Math.min(52, groupWidth * 0.55);
+
+    labels.forEach((label, index) => {
+      const barHeight = (values[index] / maxAxis) * chartHeight;
+      const x = padding.left +
+        groupWidth * index +
+        (groupWidth - barWidth) / 2;
+      const y = padding.top + chartHeight - barHeight;
+
+      context.fillStyle = colors[index];
+      context.beginPath();
+      context.roundRect(x, y, barWidth, Math.max(barHeight, 1), 5);
+      context.fill();
+
+      context.fillStyle = COLORS.navy;
+      context.textAlign = "center";
+      context.textBaseline = "bottom";
+      context.font = "bold 12px Arial";
+      context.fillText(String(values[index]), x + barWidth / 2, y - 5);
+
+      context.fillStyle = COLORS.text;
+      context.font = "11px Arial";
+      context.textBaseline = "top";
+
+      const labelParts = label.split(" ");
+      if (labelParts.length > 1) {
+        context.fillText(
+          labelParts[0],
+          x + barWidth / 2,
+          padding.top + chartHeight + 10
+        );
+        context.fillText(
+          labelParts.slice(1).join(" "),
+          x + barWidth / 2,
+          padding.top + chartHeight + 23
+        );
+      } else {
+        context.fillText(
+          label,
+          x + barWidth / 2,
+          padding.top + chartHeight + 10
+        );
+      }
+    });
+
+    $(legendId).innerHTML = labels.map((label, index) => `
+      <span class="report-legend-item">
+        <span class="report-legend-dot"
+          style="background:${colors[index]}"></span>
+        ${escapeHTML(label)}: ${values[index]}
+      </span>
+    `).join("");
+  }
+
+  function updateSummary(data) {
+    $("reportCustomers").textContent = data.customers.length;
+    $("reportPolicies").textContent = data.policies.length;
+
+    const paid = data.payments.filter((payment) => payment.status === "Paid");
+    const pending = data.payments.filter(
+      (payment) => payment.status === "Pending"
+    );
+
+    $("reportCollected").textContent = money(
+      paid.reduce((sum, payment) => sum + Number(payment.amount || 0), 0)
+    );
+
+    $("reportPendingAmount").textContent = money(
+      pending.reduce((sum, payment) => sum + Number(payment.amount || 0), 0)
     );
   }
 
-  function statusClass(status) {
-    if (status === "Paid") return "status-paid";
-    if (status === "Failed") return "status-failed";
-    return "status-pending";
+  function renderOverview(data) {
+    const active = data.policies.filter(
+      (policy) => getPolicyStatus(policy) === "Active"
+    ).length;
+
+    const expiring = data.policies.filter(
+      (policy) => getPolicyStatus(policy) === "Expiring"
+    ).length;
+
+    const expired = data.policies.filter(
+      (policy) => getPolicyStatus(policy) === "Expired"
+    ).length;
+
+    const paid = data.payments.filter(
+      (payment) => payment.status === "Paid"
+    ).length;
+
+    const pending = data.payments.filter(
+      (payment) => payment.status === "Pending"
+    ).length;
+
+    const failed = data.payments.filter(
+      (payment) => payment.status === "Failed"
+    ).length;
+
+    drawBarChart(
+      "policyChart",
+      "policyLegend",
+      ["Active", "Expiring", "Expired"],
+      [active, expiring, expired],
+      [COLORS.teal, COLORS.amber, COLORS.red]
+    );
+
+    drawBarChart(
+      "paymentChart",
+      "paymentLegend",
+      ["Paid", "Pending", "Failed"],
+      [paid, pending, failed],
+      [COLORS.teal, COLORS.amber, COLORS.red]
+    );
   }
 
-  function renderSummary() {
-    const paid = filteredPayments.filter(p => p.status === "Paid");
-    const pending = filteredPayments.filter(p => p.status === "Pending");
-    const failed = filteredPayments.filter(p => p.status === "Failed");
+  function renderTable(title, description, headers, rows) {
+    $("reportTableTitle").textContent = title;
+    $("reportTableDescription").textContent = description;
 
-    const paidAmount = paid.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
-    const pendingAmount = pending.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+    $("reportTableHead").innerHTML = `
+      <tr>${headers.map((header) =>
+        `<th>${escapeHTML(header)}</th>`
+      ).join("")}</tr>`;
 
-    ui.collected.textContent = money(paidAmount);
-    ui.pending.textContent = money(pendingAmount);
-    ui.paidCount.textContent = paid.length;
-    ui.failedCount.textContent = failed.length;
-
-    ui.statusTotal.textContent = filteredPayments.length;
-    ui.legendPaid.textContent = paid.length;
-    ui.legendPending.textContent = pending.length;
-    ui.legendFailed.textContent = failed.length;
-
-    const total = filteredPayments.length;
-    const paidPercent = total ? paid.length / total * 100 : 0;
-    const pendingPercent = total ? pending.length / total * 100 : 0;
-    const failedPercent = total ? failed.length / total * 100 : 0;
-
-    const paidEnd = paidPercent;
-    const pendingEnd = paidEnd + pendingPercent;
-    const failedEnd = pendingEnd + failedPercent;
-
-    ui.statusDonut.style.background = total
-      ? `conic-gradient(
-          var(--paid) 0% ${paidEnd}%,
-          var(--pending) ${paidEnd}% ${pendingEnd}%,
-          var(--failed) ${pendingEnd}% ${failedEnd}%,
-          var(--border) ${failedEnd}% 100%
-        )`
-      : "conic-gradient(var(--border) 0% 100%)";
-
-    ui.customerCount.textContent = customers.length;
-    ui.policyCount.textContent = policies.length;
-    ui.allPaymentCount.textContent = payments.length;
-    ui.filteredPaymentCount.textContent = filteredPayments.length;
-
-    if (activeRange.start || activeRange.end) {
-      ui.subtitle.textContent =
-        `Payment entries from ${activeRange.start || "the beginning"} to ${activeRange.end || "today"}.`;
-    } else {
-      ui.subtitle.textContent = "All recorded payment entries.";
-    }
-  }
-
-  function renderTable() {
-    const totalPages = Math.max(1, Math.ceil(filteredPayments.length / PAGE_SIZE));
-    currentPage = Math.min(Math.max(1, currentPage), totalPages);
-
-    const startIndex = (currentPage - 1) * PAGE_SIZE;
-    const rows = filteredPayments.slice(startIndex, startIndex + PAGE_SIZE);
-
-    ui.table.innerHTML = rows.map(payment => {
-      const customer = customerFor(payment);
-      const method = payment.method || "Other";
-      const status = payment.status || "Pending";
-
-      return `
+    if (!rows.length) {
+      $("reportTableBody").innerHTML = `
         <tr>
-          <td>
-            <span class="customer-name">${escapeHTML(paymentId(payment))}</span>
-            <span class="sub-text">${escapeHTML(payment.transactionId || "No reference ID")}</span>
+          <td colspan="${headers.length}" class="report-empty">
+            No records found for the selected report period.
           </td>
-          <td>${escapeHTML(customerName(customer))}</td>
-          <td>${escapeHTML(vehicleNumber(customer))}</td>
-          <td>${escapeHTML(payment.date || "—")}</td>
-          <td>${escapeHTML(method)}</td>
-          <td><strong>${money(payment.amount)}</strong></td>
-          <td><span class="status ${statusClass(status)}">${escapeHTML(status)}</span></td>
-        </tr>
-      `;
-    }).join("");
-
-    ui.empty.hidden = filteredPayments.length > 0;
-
-    ui.paginationInfo.textContent = filteredPayments.length
-      ? `Showing ${startIndex + 1}–${Math.min(startIndex + PAGE_SIZE, filteredPayments.length)} of ${filteredPayments.length}`
-      : "Showing 0 of 0";
-
-    ui.prev.disabled = currentPage === 1;
-    ui.next.disabled = currentPage === totalPages;
-
-    ui.pageNumbers.innerHTML = "";
-
-    for (let page = 1; page <= totalPages; page++) {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = `page-number${page === currentPage ? " active" : ""}`;
-      button.textContent = page;
-      button.setAttribute("aria-label", `Page ${page}`);
-
-      button.addEventListener("click", () => {
-        currentPage = page;
-        renderTable();
-      });
-
-      ui.pageNumbers.appendChild(button);
-    }
-  }
-
-  function renderReport() {
-    filteredPayments = getFilteredPayments();
-    renderSummary();
-    renderTable();
-  }
-
-  function exportCSV() {
-    if (!filteredPayments.length) {
-      alert("No report records are available to export.");
+        </tr>`;
       return;
     }
 
-    const headers = [
-      "Payment ID",
-      "Customer",
-      "Vehicle Number",
-      "Policy Number",
-      "Payment Date",
-      "Payment Method",
-      "Amount",
-      "Status",
-      "Reference ID",
-      "Demo Record"
-    ];
+    $("reportTableBody").innerHTML = rows.map((row) => `
+      <tr>${row.map((cell) =>
+        `<td>${escapeHTML(cell)}</td>`
+      ).join("")}</tr>
+    `).join("");
+  }
 
-    const csvCell = value =>
-      `"${String(value ?? "").replace(/"/g, '""')}"`;
+  function renderSelectedReport(data) {
+    const type = $("reportType").value;
 
-    const rows = filteredPayments.map(payment => {
-      const customer = customerFor(payment);
-      const policy = policyFor(payment);
+    if (type === "customers") {
+      renderTable(
+        "Customer Report",
+        "Customer records matching the selected period.",
+        ["Customer Name", "Phone", "Email", "Vehicle Number", "Created"],
+        data.customers.map((customer) => [
+          customer.name || "—",
+          customer.phone || "—",
+          customer.email || "—",
+          customer.vehicleNumber || "—",
+          customer.createdAt
+            ? String(customer.createdAt).slice(0, 10)
+            : "—"
+        ])
+      );
+      return;
+    }
 
-      return [
-        paymentId(payment),
-        customerName(customer),
-        vehicleNumber(customer),
-        policy.policyNumber || payment.policyNumber || "",
-        payment.date || "",
-        payment.method || "",
-        payment.amount || 0,
-        payment.status || "Pending",
-        payment.transactionId || "",
-        "Yes"
+    if (type === "policies") {
+      renderTable(
+        "Policy Report",
+        "Policy records matching the selected period.",
+        ["Policy Number", "Customer", "Vehicle Number", "Expiry Date",
+          "Premium", "Status"],
+        data.policies.map((policy) => [
+          policy.policyNumber || "—",
+          policy.customerName || "—",
+          policy.vehicleNumber || "—",
+          policy.expiryDate || "—",
+          money(policy.premium),
+          getPolicyStatus(policy)
+        ])
+      );
+      return;
+    }
+
+    if (type === "payments") {
+      renderTable(
+        "Payment Report",
+        "Payment records matching the selected period.",
+        ["Reference ID", "Customer", "Method", "Date", "Amount", "Status"],
+        data.payments.map((payment) => [
+          payment.id || "—",
+          payment.customerName || "—",
+          payment.method || "—",
+          payment.date || "—",
+          money(payment.amount),
+          payment.status || "Pending"
+        ])
+      );
+      return;
+    }
+
+    renderTable(
+      "Business Overview",
+      "Summary of your stored business records.",
+      ["Category", "Records", "Amount / Details"],
+      [
+        ["Customers", data.customers.length, "Customer records"],
+        ["Policies", data.policies.length, "Policy records"],
+        [
+          "Paid Payments",
+          data.payments.filter((payment) => payment.status === "Paid").length,
+          money(data.payments
+            .filter((payment) => payment.status === "Paid")
+            .reduce((sum, payment) => sum + Number(payment.amount || 0), 0))
+        ],
+        [
+          "Pending Payments",
+          data.payments.filter((payment) => payment.status === "Pending").length,
+          money(data.payments
+            .filter((payment) => payment.status === "Pending")
+            .reduce((sum, payment) => sum + Number(payment.amount || 0), 0))
+        ],
+        [
+          "Failed Payments",
+          data.payments.filter((payment) => payment.status === "Failed").length,
+          "Requires review"
+        ]
+      ]
+    );
+  }
+
+  function refreshReport() {
+    const data = getData();
+    updateSummary(data);
+    renderOverview(data);
+    renderSelectedReport(data);
+    $("reportMessage").textContent =
+      "Report refreshed: " + new Date().toLocaleString("en-IN");
+  }
+
+  function exportReport() {
+    const data = getData();
+    const type = $("reportType").value;
+    let headers;
+    let rows;
+    let filename;
+
+    if (type === "customers") {
+      headers = ["Customer Name", "Phone", "Email", "Vehicle Number", "Created"];
+      rows = data.customers.map((customer) => [
+        customer.name || "",
+        customer.phone || "",
+        customer.email || "",
+        customer.vehicleNumber || "",
+        customer.createdAt || ""
+      ]);
+      filename = "popoye-customer-report.csv";
+    } else if (type === "policies") {
+      headers = [
+        "Policy Number", "Customer", "Vehicle Number", "Expiry Date",
+        "Premium", "Status"
       ];
-    });
+      rows = data.policies.map((policy) => [
+        policy.policyNumber || "",
+        policy.customerName || "",
+        policy.vehicleNumber || "",
+        policy.expiryDate || "",
+        policy.premium || 0,
+        getPolicyStatus(policy)
+      ]);
+      filename = "popoye-policy-report.csv";
+    } else if (type === "payments") {
+      headers = [
+        "Reference ID", "Customer", "Method", "Date", "Amount", "Status"
+      ];
+      rows = data.payments.map((payment) => [
+        payment.id || "",
+        payment.customerName || "",
+        payment.method || "",
+        payment.date || "",
+        payment.amount || 0,
+        payment.status || "Pending"
+      ]);
+      filename = "popoye-payment-report.csv";
+    } else {
+      headers = ["Category", "Records", "Amount / Details"];
+      rows = [
+        ["Customers", data.customers.length, "Customer records"],
+        ["Policies", data.policies.length, "Policy records"],
+        [
+          "Paid Payments",
+          data.payments.filter((payment) => payment.status === "Paid").length,
+          data.payments
+            .filter((payment) => payment.status === "Paid")
+            .reduce((sum, payment) => sum + Number(payment.amount || 0), 0)
+        ],
+        [
+          "Pending Payments",
+          data.payments.filter((payment) => payment.status === "Pending").length,
+          data.payments
+            .filter((payment) => payment.status === "Pending")
+            .reduce((sum, payment) => sum + Number(payment.amount || 0), 0)
+        ],
+        [
+          "Failed Payments",
+          data.payments.filter((payment) => payment.status === "Failed").length,
+          "Requires review"
+        ]
+      ];
+      filename = "popoye-business-report.csv";
+    }
 
-    const csv = "\uFEFF" + [headers, ...rows]
-      .map(row => row.map(csvCell).join(","))
+    if (!rows.length) {
+      $("reportMessage").textContent =
+        "No records are available to export for this report.";
+      return;
+    }
+
+    const csvValue = (value) =>
+      '"' + String(value ?? "").replace(/"/g, '""') + '"';
+
+    const csv = [headers, ...rows]
+      .map((row) => row.map(csvValue).join(","))
       .join("\r\n");
 
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const blob = new Blob(["\uFEFF" + csv], {
+      type: "text/csv;charset=utf-8;"
+    });
+
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-
     link.href = url;
-    link.download = `popoye-report-${localDate()}.csv`;
+    link.download = filename;
     document.body.appendChild(link);
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
+
+    $("reportMessage").textContent = "Report exported successfully.";
   }
 
-  ui.preset.addEventListener("change", () => {
-    ui.customFields.hidden = ui.preset.value !== "custom";
-  });
-
-  $("applyFilters").addEventListener("click", applyFilters);
-
-  $("resetFilters").addEventListener("click", () => {
-    ui.preset.value = "all";
-    ui.start.value = "";
-    ui.end.value = "";
-    ui.status.value = "";
-    ui.search.value = "";
-    ui.customFields.hidden = true;
-    ui.error.hidden = true;
-    activeRange = { start: "", end: "" };
-    currentPage = 1;
-    renderReport();
-  });
-
-  ui.search.addEventListener("input", () => {
-    currentPage = 1;
-    renderReport();
-  });
-
-  ui.status.addEventListener("change", () => {
-    currentPage = 1;
-    renderReport();
-  });
-
-  ui.prev.addEventListener("click", () => {
-    if (currentPage > 1) {
-      currentPage--;
-      renderTable();
-    }
-  });
-
-  ui.next.addEventListener("click", () => {
-    const totalPages = Math.max(1, Math.ceil(filteredPayments.length / PAGE_SIZE));
-
-    if (currentPage < totalPages) {
-      currentPage++;
-      renderTable();
-    }
-  });
-
-  $("exportBtn").addEventListener("click", exportCSV);
+  $("refreshReport").addEventListener("click", refreshReport);
+  $("reportPeriod").addEventListener("change", refreshReport);
+  $("reportType").addEventListener("change", refreshReport);
+  $("exportReport").addEventListener("click", exportReport);
 
   $("menuToggle").addEventListener("click", () => {
-    $("sidebar").classList.toggle("open");
+    $("sidebar").classList.toggle("sidebar-open");
   });
 
   $("logoutBtn").addEventListener("click", () => {
-    sessionStorage.removeItem("popoyeLoggedIn");
-    window.location.href = "login.html";
-  });
-
-  function applyTheme() {
-    document.body.classList.toggle(
-      "dark-mode",
-      localStorage.getItem("popoyeTheme") === "dark"
-    );
-  }
-
-  window.addEventListener("storage", event => {
-    if (Object.values(KEYS).includes(event.key) || event.key === "popoyeTheme") {
-      refreshData();
-      applyTheme();
-      renderReport();
+    if (window.confirm("Are you sure you want to log out?")) {
+      localStorage.removeItem(KEYS.login);
+      window.location.href = "login.html";
     }
   });
 
-  refreshData();
-  applyTheme();
-  renderReport();
-})();
+  let resizeTimer;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(refreshReport, 150);
+  });
+
+  refreshReport();
+});

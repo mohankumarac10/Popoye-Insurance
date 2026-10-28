@@ -2,76 +2,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login | Popoye Insurance</title>
-  <link rel="stylesheet" href="login.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Popoye Insurance</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="login.js" defer></script>
 </head>
-<body>
-  <main class="login-container">
-    <section class="login-brand">
-      <img src="images/logo.png" alt="Popoye Insurance Logo">
-      <h1>Popoye Insurance</h1>
-      <p>Two-Wheeler Insurance Management</p>
+<body class="login-body">
 
-      <div class="brand-message">
-        <h2>Welcome back!</h2>
-        <p>Manage customers, policies, payments and renewal reminders from one place.</p>
-      </div>
-    </section>
+    <main class="login-container">
+        <section class="login-brand">
+            <img src="images/logo.png" alt="Popoye Insurance Logo"
+                 class="login-logo">
 
-    <section class="login-panel">
-      <form id="loginForm" class="login-form">
-        <div class="form-heading">
-          <span class="eyebrow">ADMIN PORTAL</span>
-          <h2>Sign in</h2>
-          <p>Enter your login details to continue.</p>
-        </div>
+            <h1>Popoye Insurance</h1>
+            <p>Your trusted two-wheeler insurance management system.</p>
 
-        <div id="loginMessage" class="message" role="alert" aria-live="polite"></div>
+            <div class="login-features">
+                <p> Customer Management</p>
+                <p> Policy Renewals</p>
+                <p> Payment Tracking</p>
+                <p> Insurance Analytics</p>
+            </div>
+        </section>
 
-        <div class="form-group">
-          <label for="username">Username</label>
-          <input
-            type="text"
-            id="username"
-            name="username"
-            placeholder="Enter username"
-            autocomplete="username"
-            required
-          >
-        </div>
+        <section class="login-form-section">
+            <h2>Welcome Back!</h2>
+            <p class="muted-text">Sign in to access your dashboard.</p>
 
-        <div class="form-group">
-          <label for="password">Password</label>
-          <div class="password-wrapper">
-            <input
-              type="password"
-              id="password"
-              name="password"
-              placeholder="Enter password"
-              autocomplete="current-password"
-              required
-            >
-            <button type="button" id="togglePassword" class="show-password">
-              Show
-            </button>
-          </div>
-        </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email"
+                           placeholder="admin@popoyeinsurance.com"
+                           required>
+                </div>
 
-        <button type="submit" class="login-button">Login to Dashboard</button>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password"
+                           placeholder="Enter your password"
+                           required>
+                </div>
 
-        <p class="security-note">
-          Demo login only. Connect a secure backend before using real business data.
-        </p>
-      </form>
-    </section>
-  </main>
+                <p id="loginMessage" class="login-message"
+                   role="alert"></p>
 
-  <footer class="page-footer">
-    &copy; <span id="currentYear"></span> Popoye Insurance
-  </footer>
+                <button type="submit" class="primary-btn login-btn">
+                    Login to Dashboard
+                </button>
+            </form>
 
-  <script src="login.js"></script>
+            <p class="login-footer">
+                © 2026 Popoye Insurance. All rights reserved.
+            </p>
+        </section>
+    </main>
+
 </body>
 </html>

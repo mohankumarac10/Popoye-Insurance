@@ -2,189 +2,285 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Customers | Popoye Insurance</title>
-  <link rel="stylesheet" href="customers.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customers | Popoye Insurance</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="customers.js" defer></script>
 </head>
-<body>
-  <div class="app-layout">
+<body class="app-body">
+<div class="app-layout">
 
+    <!-- SIDEBAR: SAME AS DASHBOARD -->
     <aside class="sidebar" id="sidebar">
-      <div class="brand">
-        <img src="images/logo.png" alt="Popoye Insurance">
-        <div><h2>Popoye</h2><p>Insurance</p></div>
-      </div>
-
-      <p class="menu-label">MAIN MENU</p>
-      <nav class="navigation">
-        <a href="index.html" class="nav-link"><span>▦</span> Dashboard</a>
-        <a href="customers.html" class="nav-link active"><span>♙</span> Customers</a>
-        <a href="policies.html" class="nav-link"><span>▤</span> Policies</a>
-        <a href="payments.html" class="nav-link"><span>₹</span> Payments</a>
-        <a href="reports.html" class="nav-link"><span>▥</span> Reports</a>
-        <a href="reminders.html" class="nav-link"><span>♧</span> Reminders</a>
-        <a href="settings.html" class="nav-link"><span>⚙</span> Settings</a>
-      </nav>
-
-      <div class="sidebar-bottom">
-        <div class="admin-profile">
-          <div class="avatar">A</div>
-          <div><strong>Administrator</strong><small>Admin Account</small></div>
+        <div class="sidebar-brand">
+            <img src="images/logo.png" alt="Popoye Insurance Logo">
+            <div>
+                <h2>Popoye</h2>
+                <span>INSURANCE</span>
+            </div>
         </div>
-        <button id="logoutBtn" class="logout-btn">↪ Logout</button>
-      </div>
+
+        <div class="sidebar-label">MAIN MENU</div>
+
+        <nav class="sidebar-nav" aria-label="Main navigation">
+            <a href="dashboard.html" class="nav-link">
+                <span class="nav-icon"></span> Dashboard
+            </a>
+            <a href="customers.html" class="nav-link active" aria-current="page">
+                <span class="nav-icon"></span> Customers
+            </a>
+            <a href="policies.html" class="nav-link">
+                <span class="nav-icon"></span> Policies
+            </a>
+            <a href="payments.html" class="nav-link">
+                <span class="nav-icon"></span> Payments
+            </a>
+            <a href="reports.html" class="nav-link">
+                <span class="nav-icon"></span> Reports
+            </a>
+            <a href="reminders.html" class="nav-link">
+                <span class="nav-icon"></span> Reminders
+            </a>
+            <a href="settings.html" class="nav-link">
+                <span class="nav-icon"></span> Settings
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="sidebar-help">
+                <strong>Popoye Insurance</strong>
+                <p>Two-wheeler insurance management</p>
+            </div>
+            <button type="button" class="logout-btn" id="logoutBtn">
+                ↪ Log Out
+            </button>
+        </div>
     </aside>
 
+    <!-- MAIN CONTENT -->
     <main class="main-content">
-      <header class="topbar">
-        <button id="menuToggle" class="menu-toggle" aria-label="Toggle menu">☰</button>
-        <div>
-          <h2>Customers</h2>
-          <p class="topbar-subtitle">Manage your insurance customers</p>
-        </div>
-        <button id="themeToggle" class="icon-btn" aria-label="Toggle dark mode">◐</button>
-      </header>
+        <header class="topbar">
+            <button class="menu-toggle" id="menuToggle"
+                    type="button" aria-label="Toggle navigation"></button>
 
-      <section class="page-content">
-
-        <div class="page-heading">
-          <div>
-            <h1>Customer Management</h1>
-            <p>Add, update, search and manage customer information.</p>
-          </div>
-          <button id="addCustomerBtn" class="primary-btn">＋ Add Customer</button>
-        </div>
-
-        <section class="stats-grid">
-          <article class="stat-card">
-            <span>Total Customers</span>
-            <h2 id="totalCustomers">0</h2>
-          </article>
-          <article class="stat-card">
-            <span>With Phone Numbers</span>
-            <h2 id="customersWithPhone">0</h2>
-          </article>
-          <article class="stat-card">
-            <span>Registered This Month</span>
-            <h2 id="newCustomers">0</h2>
-          </article>
-        </section>
-
-        <section class="customer-panel">
-
-          <div class="toolbar">
-            <input id="searchInput" type="search"
-                   placeholder="Search name, phone, vehicle or email...">
-
-            <select id="customerFilter" aria-label="Filter customers">
-              <option value="all">All Customers</option>
-              <option value="withPhone">With Phone Number</option>
-              <option value="withoutPhone">Without Phone Number</option>
-            </select>
-
-            <button id="exportBtn" class="secondary-btn">Export CSV</button>
-          </div>
-
-          <div id="customerMessage" class="message" role="status"
-               aria-live="polite"></div>
-
-          <div class="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Customer ID</th>
-                  <th>Customer Details</th>
-                  <th>Phone Number</th>
-                  <th>Vehicle Number</th>
-                  <th>Registered Date</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="customerTableBody"></tbody>
-            </table>
-          </div>
-
-          <div class="pagination">
-            <span id="pageInfo">Showing 0 customers</span>
-            <div class="pagination-controls">
-              <button id="prevPage" class="page-btn">Previous</button>
-              <span id="pageNumber">1 / 1</span>
-              <button id="nextPage" class="page-btn">Next</button>
+            <div class="topbar-heading">
+                <h2>Customers</h2>
+                <p>Manage your two-wheeler insurance customers.</p>
             </div>
-          </div>
+
+            <div class="topbar-actions">
+                <span class="admin-avatar">A</span>
+                <div>
+                    <strong>Administrator</strong>
+                    <small>Admin Account</small>
+                </div>
+            </div>
+        </header>
+
+        <section class="page-container">
+            <div class="page-header">
+                <div>
+                    <h1>Customer Management</h1>
+                    <p class="muted-text">Add, search, edit, and manage customer records.</p>
+                </div>
+                <button type="button" class="primary-btn" id="addCustomerBtn">
+                    + Add Customer
+                </button>
+            </div>
+
+            <!-- CUSTOMER SUMMARY -->
+            <div class="stats-grid customer-stats">
+                <article class="stat-card">
+                    <div class="stat-top">
+                        <span>Total Customers</span>
+                    </div>
+                    <h2 id="customerCount">0</h2>
+                    <p>All registered customers</p>
+                </article>
+
+                <article class="stat-card">
+                    <div class="stat-top">
+                        <span>Active Customers</span>
+                    </div>
+                    <h2 id="activeCustomerCount">0</h2>
+                    <p>Customers marked active</p>
+                </article>
+
+                <article class="stat-card">
+                    <div class="stat-top">
+                        <span>Inactive Customers</span>
+                    </div>
+                    <h2 id="inactiveCustomerCount">0</h2>
+                    <p>Customers marked inactive</p>
+                </article>
+
+                <article class="stat-card">
+                    <div class="stat-top">
+                        <span>Filtered Results</span>
+                    </div>
+                    <h2 id="filteredCustomerCount">0</h2>
+                    <p>Matching current search and filter</p>
+                </article>
+            </div>
+
+            <!-- ADD / EDIT FORM -->
+            <section class="card customer-form-card" id="customerFormCard" hidden>
+                <div class="section-heading">
+                    <div>
+                        <h3 id="customerFormTitle">Add New Customer</h3>
+                        <p>Enter the customer's contact and vehicle details.</p>
+                    </div>
+                    <button type="button" class="secondary-btn" id="cancelCustomerBtn">
+                        Cancel
+                    </button>
+                </div>
+
+                <form id="customerForm">
+                    <input type="hidden" id="customerId">
+
+                    <div class="customer-form-grid">
+                        <div class="form-group">
+                            <label for="customerName">Full Name *</label>
+                            <input id="customerName" name="customerName"
+                                   type="text" maxlength="100" required
+                                   placeholder="Enter full name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="customerPhone">Phone Number *</label>
+                            <input id="customerPhone" name="customerPhone"
+                                   type="tel" inputmode="numeric"
+                                   pattern="[0-9]{10}" maxlength="10"
+                                   minlength="10" required
+                                   placeholder="10-digit mobile number">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="customerEmail">Email Address</label>
+                            <input id="customerEmail" name="customerEmail"
+                                   type="email" maxlength="150"
+                                   placeholder="customer@example.com">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="vehicleNumber">Vehicle Number *</label>
+                            <input id="vehicleNumber" name="vehicleNumber"
+                                   type="text" maxlength="20" required
+                                   placeholder="e.g. TN 38 AB 1234">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="vehicleModel">Vehicle Model</label>
+                            <input id="vehicleModel" name="vehicleModel"
+                                   type="text" maxlength="100"
+                                   placeholder="e.g. Honda Activa">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="customerStatus">Customer Status</label>
+                            <select id="customerStatus" name="customerStatus">
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group customer-address">
+                            <label for="customerAddress">Address</label>
+                            <textarea id="customerAddress" name="customerAddress"
+                                      rows="3" maxlength="300"
+                                      placeholder="Enter customer address"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="customer-form-actions">
+                        <button type="submit" class="primary-btn" id="saveCustomerBtn">
+                            Save Customer
+                        </button>
+                        <button type="button" class="secondary-btn"
+                                id="resetCustomerBtn">Clear Form</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- CUSTOMER TABLE -->
+            <section class="card">
+                <div class="section-heading">
+                    <div>
+                        <h3>All Customers</h3>
+                        <p>Search and manage your registered customers.</p>
+                    </div>
+                    <button type="button" class="secondary-btn" id="exportCustomersBtn">
+                        ↓ Export CSV
+                    </button>
+                </div>
+
+                <div class="customer-toolbar">
+                    <div class="form-group search-field">
+                        <label for="customerSearch">Search Customers</label>
+                        <input type="search" id="customerSearch"
+                               placeholder="Search name, phone, vehicle...">
+                    </div>
+
+                    <div class="form-group filter-field">
+                        <label for="customerStatusFilter">Status</label>
+                        <select id="customerStatusFilter">
+                            <option value="All">All Statuses</option>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group filter-field">
+                        <label for="customerPageSize">Rows per page</label>
+                        <select id="customerPageSize">
+                            <option value="5">5 rows</option>
+                            <option value="10" selected>10 rows</option>
+                            <option value="20">20 rows</option>
+                        </select>
+                    </div>
+                </div>
+
+                <p id="customerMessage" class="customer-message"
+                   role="status" aria-live="polite"></p>
+
+                <div class="table-wrap">
+                    <table class="data-table customer-table">
+                        <thead>
+                            <tr>
+                                <th>Customer</th>
+                                <th>Phone</th>
+                                <th>Vehicle Number</th>
+                                <th>Vehicle Model</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customersTableBody">
+                            <tr>
+                                <td colspan="6">Loading customers...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination-bar">
+                    <span id="customerPageInfo">Showing 0 customers</span>
+                    <div class="pagination-controls">
+                        <button type="button" class="secondary-btn"
+                                id="customerPrevBtn">Previous</button>
+                        <span id="customerPageNumber">Page 1 of 1</span>
+                        <button type="button" class="secondary-btn"
+                                id="customerNextBtn">Next</button>
+                    </div>
+                </div>
+            </section>
+
+            <footer class="app-footer">
+                © 2026 Popoye Insurance. All rights reserved.
+            </footer>
         </section>
-
-        <footer class="page-footer">
-          © <span id="currentYear"></span> Popoye Insurance
-        </footer>
-      </section>
     </main>
-  </div>
-
-  <!-- Add / Edit Customer Modal -->
-  <div class="modal-overlay" id="customerModal" hidden>
-    <section class="modal-card" role="dialog"
-             aria-modal="true" aria-labelledby="modalTitle">
-      <div class="modal-heading">
-        <div>
-          <h2 id="modalTitle">Add New Customer</h2>
-          <p>Enter the customer's details below.</p>
-        </div>
-        <button type="button" id="closeModalBtn"
-                class="close-btn" aria-label="Close">×</button>
-      </div>
-
-      <form id="customerForm">
-        <input type="hidden" id="editCustomerId">
-
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="customerName">Full Name *</label>
-            <input id="customerName" type="text" maxlength="100"
-                   placeholder="Enter full name" required>
-          </div>
-
-          <div class="form-group">
-            <label for="customerPhone">Phone Number *</label>
-            <input id="customerPhone" type="tel"
-                   inputmode="numeric" maxlength="10"
-                   pattern="[6-9][0-9]{9}"
-                   title="Enter a valid 10-digit Indian mobile number"
-                   placeholder="10-digit mobile number" required>
-          </div>
-
-          <div class="form-group">
-            <label for="customerEmail">Email Address</label>
-            <input id="customerEmail" type="email" maxlength="150"
-                   placeholder="customer@example.com">
-          </div>
-
-          <div class="form-group">
-            <label for="vehicleNumber">Vehicle Number *</label>
-            <input id="vehicleNumber" type="text" maxlength="15"
-                   placeholder="TN01AB1234" required>
-          </div>
-
-          <div class="form-group full-width">
-            <label for="customerAddress">Address</label>
-            <textarea id="customerAddress" rows="3" maxlength="300"
-                      placeholder="Enter customer address"></textarea>
-          </div>
-        </div>
-
-        <div class="form-actions">
-          <button type="button" id="cancelBtn" class="secondary-btn">
-            Cancel
-          </button>
-          <button type="submit" class="primary-btn" id="saveCustomerBtn">
-            Save Customer
-          </button>
-        </div>
-      </form>
-    </section>
-  </div>
-
-  <script src="customers.js"></script>
+</div>
 </body>
 </html>

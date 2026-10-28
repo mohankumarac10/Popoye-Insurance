@@ -5,177 +5,220 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Settings | Popoye Insurance</title>
-  <link rel="stylesheet" href="settings.css">
+  <link rel="stylesheet" href="style.css">
+  <script src="settings.js" defer></script>
 </head>
-<body>
+<body class="app-body">
+
   <div class="app-layout">
+
     <aside class="sidebar" id="sidebar">
-      <div class="brand">
+      <div class="sidebar-brand">
         <img src="images/logo.png" alt="Popoye Insurance Logo">
         <div>
-          <h2>Popoye</h2>
-          <span>Insurance</span>
+          <h2>Popoye Insurance</h2>
+          <p>Insurance Management</p>
         </div>
       </div>
 
-      <nav class="navigation">
-        <a href="index.html">Dashboard</a>
-        <a href="customers.html">Customers</a>
-        <a href="policies.html">Policies</a>
-        <a href="payments.html">Payments</a>
-        <a href="reminders.html">Reminders</a>
-        <a href="reports.html">Reports</a>
-        <a href="settings.html" class="active">Settings</a>
+      <p class="sidebar-label">MAIN MENU</p>
+
+      <nav class="sidebar-nav">
+        <a href="dashboard.html" class="nav-link">Dashboard</a>
+        <a href="customers.html" class="nav-link">Customers</a>
+        <a href="policies.html" class="nav-link">Policies</a>
+        <a href="payments.html" class="nav-link">Payments</a>
+        <a href="reports.html" class="nav-link">Reports</a>
+        <a href="reminders.html" class="nav-link">Reminders</a>
+        <a href="settings.html" class="nav-link active">Settings</a>
       </nav>
 
-      <button id="logoutBtn" class="logout-btn">Log Out</button>
+      <div class="sidebar-bottom">
+        <div class="sidebar-help">
+          <strong>Need help?</strong>
+          <p>Manage your insurance workspace here.</p>
+        </div>
+        <button type="button" class="logout-btn" id="logoutBtn">
+          Logout
+        </button>
+      </div>
     </aside>
 
     <main class="main-content">
+
       <header class="topbar">
-        <button id="menuBtn" class="menu-btn" aria-label="Toggle navigation">☰</button>
-        <div>
-          <h1>Settings</h1>
-          <p>Manage your insurance business preferences.</p>
+        <div class="topbar-left">
+          <button type="button" class="menu-toggle" id="menuToggle"
+            aria-label="Toggle sidebar">☰</button>
+          <div>
+            <h1>Settings</h1>
+            <p>Manage your business and application preferences.</p>
+          </div>
+        </div>
+
+        <div class="topbar-actions">
+          <span class="admin-avatar">A</span>
+          <div>
+            <strong>Administrator</strong>
+            <p>Admin Account</p>
+          </div>
         </div>
       </header>
 
-      <div id="message" class="message" role="status" aria-live="polite"></div>
+      <section class="page-container">
 
-      <form id="settingsForm">
-        <section class="settings-card">
-          <div class="section-heading">
-            <div>
-              <h2>Business Information</h2>
-              <p>Set the name and contact details for your business.</p>
-            </div>
-          </div>
-
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="businessName">Business Name</label>
-              <input id="businessName" name="businessName" type="text"
-                maxlength="100" required>
-            </div>
-
-            <div class="form-group">
-              <label for="businessPhone">Contact Number</label>
-              <input id="businessPhone" name="businessPhone" type="tel"
-                maxlength="20" placeholder="Enter business phone">
-            </div>
-
-            <div class="form-group full-width">
-              <label for="businessEmail">Business Email</label>
-              <input id="businessEmail" name="businessEmail" type="email"
-                maxlength="150" placeholder="Enter business email">
-            </div>
-          </div>
-        </section>
-
-        <section class="settings-card">
-          <div class="section-heading">
-            <div>
-              <h2>Renewal Reminders</h2>
-              <p>Choose your preferred reminder settings.</p>
-            </div>
-          </div>
-
-          <label class="toggle-row" for="enableReminders">
-            <span>
-              <strong>Enable reminders</strong>
-              <small>Enable reminder preferences in this browser.</small>
-            </span>
-            <input id="enableReminders" type="checkbox">
-          </label>
-
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="reminderDays">Remind before expiry</label>
-              <select id="reminderDays">
-                <option value="7">7 days</option>
-                <option value="15">15 days</option>
-                <option value="30">30 days</option>
-                <option value="45">45 days</option>
-                <option value="60">60 days</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="reminderChannel">Preferred Channel</label>
-              <select id="reminderChannel">
-                <option value="WhatsApp">WhatsApp</option>
-                <option value="SMS">SMS</option>
-                <option value="Email">Email</option>
-              </select>
-            </div>
-          </div>
-
-          <p class="help-text">
-            These are saved preferences only. They do not automatically send
-            messages or connect to WhatsApp, SMS, or email services.
-          </p>
-        </section>
-
-        <section class="settings-card">
-          <div class="section-heading">
-            <div>
-              <h2>Appearance</h2>
-              <p>Choose how the website looks.</p>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="themePreference">Website Theme</label>
-            <select id="themePreference">
-              <option value="light">Light Mode</option>
-              <option value="dark">Dark Mode</option>
-            </select>
-          </div>
-          <p class="help-text">
-            Theme selection is saved in this browser. Other pages must read
-            the same popoyeTheme key to apply the theme.
-          </p>
-        </section>
-
-        <div class="form-actions">
-          <button type="button" id="resetBtn" class="secondary-btn">
-            Restore Defaults
-          </button>
-          <button type="submit" class="primary-btn">Save Settings</button>
-        </div>
-      </form>
-
-      <section class="settings-card data-card">
-        <div class="section-heading">
+        <div class="page-header">
           <div>
-            <h2>Local Data Overview</h2>
-            <p>Records saved in this browser for the demo website.</p>
+            <h2>Application Settings</h2>
+            <p>Update your business details, reminders, and appearance.</p>
           </div>
         </div>
 
-        <div class="data-grid">
-          <div class="data-item">
-            <span>Customers</span>
-            <strong id="customerCount">0</strong>
-          </div>
-          <div class="data-item">
-            <span>Policies</span>
-            <strong id="policyCount">0</strong>
-          </div>
-          <div class="data-item">
-            <span>Payments</span>
-            <strong id="paymentCount">0</strong>
-          </div>
-        </div>
+        <form id="settingsForm">
 
-        <p class="help-text">
-          These records are stored locally in your browser, not in a secure
-          shared database. Clearing browser data may remove them.
-        </p>
+          <section class="card settings-card">
+            <div class="settings-section-heading">
+              <div class="settings-icon">🏢</div>
+              <div>
+                <h3>Business Profile</h3>
+                <p>Basic details for your insurance business.</p>
+              </div>
+            </div>
+
+            <div class="settings-form-grid">
+              <div class="form-group">
+                <label for="businessName">Business Name</label>
+                <input type="text" id="businessName" name="businessName"
+                  placeholder="Popoye Insurance" required>
+              </div>
+
+              <div class="form-group">
+                <label for="businessEmail">Business Email</label>
+                <input type="email" id="businessEmail" name="businessEmail"
+                  placeholder="example@popoyeinsurance.com">
+              </div>
+
+              <div class="form-group">
+                <label for="businessPhone">Contact Number</label>
+                <input type="tel" id="businessPhone" name="businessPhone"
+                  placeholder="Enter contact number">
+              </div>
+
+              <div class="form-group">
+                <label for="businessAddress">Business Address</label>
+                <input type="text" id="businessAddress" name="businessAddress"
+                  placeholder="Enter business address">
+              </div>
+            </div>
+          </section>
+
+          <section class="card settings-card">
+            <div class="settings-section-heading">
+              <div class="settings-icon">🔔</div>
+              <div>
+                <h3>Renewal Reminders</h3>
+                <p>Choose how your policy renewal reminders should be managed.</p>
+              </div>
+            </div>
+
+            <div class="settings-form-grid">
+              <div class="form-group">
+                <label for="reminderDays">Remind Before Expiry</label>
+                <select id="reminderDays" name="reminderDays">
+                  <option value="7">7 days before</option>
+                  <option value="15">15 days before</option>
+                  <option value="30">30 days before</option>
+                  <option value="45">45 days before</option>
+                  <option value="60">60 days before</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="reminderChannel">Preferred Channel</label>
+                <select id="reminderChannel" name="reminderChannel">
+                  <option value="WhatsApp">WhatsApp</option>
+                  <option value="SMS">SMS</option>
+                  <option value="Email">Email</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="settings-option-row">
+              <div>
+                <strong>Enable Renewal Reminders</strong>
+                <p>Enable reminder preferences for upcoming policy expiries.</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="enableReminders"
+                  name="enableReminders">
+                <span class="switch-slider"></span>
+              </label>
+            </div>
+
+            <p class="settings-note">
+              Note: These settings save locally in this browser. Automatic
+              WhatsApp, SMS, or email delivery requires a backend and service
+              integration.
+            </p>
+          </section>
+
+          <section class="card settings-card">
+            <div class="settings-section-heading">
+              <div class="settings-icon">🎨</div>
+              <div>
+                <h3>Appearance</h3>
+                <p>Choose the appearance of your application.</p>
+              </div>
+            </div>
+
+            <div class="theme-options">
+              <label class="theme-option" for="themeLight">
+                <input type="radio" id="themeLight" name="themePreference"
+                  value="light">
+                <span class="theme-preview light-preview">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </span>
+                <strong>Light Mode</strong>
+                <small>Bright and clean</small>
+              </label>
+
+              <label class="theme-option" for="themeDark">
+                <input type="radio" id="themeDark" name="themePreference"
+                  value="dark">
+                <span class="theme-preview dark-preview">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </span>
+                <strong>Dark Mode</strong>
+                <small>Comfortable in low light</small>
+              </label>
+            </div>
+          </section>
+
+          <div class="settings-actions">
+            <button type="button" class="secondary-btn" id="resetSettingsBtn">
+              Reset Defaults
+            </button>
+            <button type="submit" class="primary-btn">
+              Save Settings
+            </button>
+          </div>
+
+          <p id="settingsMessage" class="settings-message"
+            role="status" aria-live="polite"></p>
+
+        </form>
+
+        <footer class="app-footer">
+          © 2026 Popoye Insurance. All rights reserved.
+        </footer>
+
       </section>
     </main>
   </div>
 
-  <script src="settings.js"></script>
 </body>
 </html>

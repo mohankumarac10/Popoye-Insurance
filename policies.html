@@ -2,207 +2,324 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Policies | Popoye Insurance</title>
-  <link rel="stylesheet" href="policies.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Policies | Popoye Insurance</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="policies.js" defer></script>
 </head>
-<body>
+<body class="app-body">
 <div class="app-layout">
 
-  <aside class="sidebar" id="sidebar">
-    <div class="brand">
-      <img src="images/logo.png" alt="Popoye Insurance">
-      <div><h2>Popoye</h2><p>Insurance</p></div>
-    </div>
-
-    <p class="menu-label">MAIN MENU</p>
-    <nav class="navigation">
-      <a href="index.html" class="nav-link"><span>▦</span> Dashboard</a>
-      <a href="customers.html" class="nav-link"><span>♙</span> Customers</a>
-      <a href="policies.html" class="nav-link active"><span>▤</span> Policies</a>
-      <a href="payments.html" class="nav-link"><span>₹</span> Payments</a>
-      <a href="reports.html" class="nav-link"><span>▥</span> Reports</a>
-      <a href="reminders.html" class="nav-link"><span>♧</span> Reminders</a>
-      <a href="settings.html" class="nav-link"><span>⚙</span> Settings</a>
-    </nav>
-
-    <div class="sidebar-bottom">
-      <div class="admin-profile">
-        <div class="avatar">A</div>
-        <div><strong>Administrator</strong><small>Admin Account</small></div>
-      </div>
-      <button id="logoutBtn" class="logout-btn">↪ Logout</button>
-    </div>
-  </aside>
-
-  <main class="main-content">
-    <header class="topbar">
-      <button id="menuToggle" class="menu-toggle" aria-label="Toggle menu">☰</button>
-      <div>
-        <h2>Policies</h2>
-        <p class="topbar-subtitle">Manage two-wheeler insurance policies</p>
-      </div>
-      <button id="themeToggle" class="icon-btn" aria-label="Toggle dark mode">◐</button>
-    </header>
-
-    <section class="page-content">
-      <div class="page-heading">
-        <div>
-          <h1>Policy Management</h1>
-          <p>Register policies and track renewals and expiry dates.</p>
-        </div>
-        <button id="addPolicyBtn" class="primary-btn">＋ Add Policy</button>
-      </div>
-
-      <section class="stats-grid">
-        <article class="stat-card">
-          <span>Total Policies</span>
-          <h2 id="totalPolicies">0</h2>
-        </article>
-        <article class="stat-card">
-          <span>Active Policies</span>
-          <h2 id="activePolicies">0</h2>
-        </article>
-        <article class="stat-card">
-          <span>Expiring in 30 Days</span>
-          <h2 id="expiringPolicies">0</h2>
-        </article>
-        <article class="stat-card">
-          <span>Expired Policies</span>
-          <h2 id="expiredPolicies">0</h2>
-        </article>
-      </section>
-
-      <section class="policy-panel">
-        <div class="toolbar">
-          <input id="searchInput" type="search"
-                 placeholder="Search policy, customer or vehicle...">
-
-          <select id="statusFilter" aria-label="Filter by policy status">
-            <option value="all">All Statuses</option>
-            <option value="Active">Active</option>
-            <option value="Expiring Soon">Expiring Soon</option>
-            <option value="Expired">Expired</option>
-          </select>
-
-          <select id="typeFilter" aria-label="Filter by insurance type">
-            <option value="all">All Insurance Types</option>
-            <option value="Third Party">Third Party</option>
-            <option value="Comprehensive">Comprehensive</option>
-            <option value="Own Damage">Own Damage</option>
-          </select>
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <img src="images/logo.png" alt="Popoye Insurance Logo">
+            <div>
+                <h2>Popoye</h2>
+                <span>INSURANCE</span>
+            </div>
         </div>
 
-        <p id="policyMessage" class="message" role="status" aria-live="polite"></p>
+        <div class="sidebar-label">MAIN MENU</div>
 
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Policy Number</th>
-                <th>Customer</th>
-                <th>Vehicle Number</th>
-                <th>Insurance Type</th>
-                <th>Premium</th>
-                <th>Expiry Date</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="policyTableBody"></tbody>
-          </table>
+        <nav class="sidebar-nav" aria-label="Main navigation">
+            <a href="dashboard.html" class="nav-link">
+                <span class="nav-icon"></span> Dashboard
+            </a>
+            <a href="customers.html" class="nav-link">
+                <span class="nav-icon"></span> Customers
+            </a>
+            <a href="policies.html" class="nav-link active" aria-current="page">
+                <span class="nav-icon"></span> Policies
+            </a>
+            <a href="payments.html" class="nav-link">
+                <span class="nav-icon"></span> Payments
+            </a>
+            <a href="reports.html" class="nav-link">
+                <span class="nav-icon"></span> Reports
+            </a>
+            <a href="reminders.html" class="nav-link">
+                <span class="nav-icon"></span> Reminders
+            </a>
+            <a href="settings.html" class="nav-link">
+                <span class="nav-icon"></span> Settings
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="sidebar-help">
+                <strong>Popoye Insurance</strong>
+                <p>Two-wheeler insurance management</p>
+            </div>
+            <button type="button" class="logout-btn" id="logoutBtn">
+                ↪ Log Out
+            </button>
         </div>
+    </aside>
 
-        <div class="pagination">
-          <span id="pageInfo">Showing 0 policies</span>
-          <div class="pagination-controls">
-            <button id="prevPage" class="page-btn">Previous</button>
-            <span id="pageNumber">1 / 1</span>
-            <button id="nextPage" class="page-btn">Next</button>
-          </div>
-        </div>
-      </section>
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
 
-      <footer class="page-footer">
-        © <span id="currentYear"></span> Popoye Insurance
-      </footer>
-    </section>
-  </main>
+        <header class="topbar">
+            <button class="menu-toggle" id="menuToggle"
+                    type="button" aria-label="Toggle navigation"></button>
+
+            <div class="topbar-heading">
+                <h2>Policies</h2>
+                <p>Manage two-wheeler insurance policies.</p>
+            </div>
+
+            <div class="topbar-actions">
+                <span class="admin-avatar">A</span>
+                <div>
+                    <strong>Administrator</strong>
+                    <small>Admin Account</small>
+                </div>
+            </div>
+        </header>
+
+        <section class="page-container">
+
+            <div class="page-header">
+                <div>
+                    <h1>Policy Management</h1>
+                    <p class="muted-text">Register policies and track renewals and expiry dates.</p>
+                </div>
+
+                <button type="button" class="primary-btn" id="addPolicyBtn">
+                    + Add Policy
+                </button>
+            </div>
+
+            <!-- SUMMARY CARDS -->
+            <div class="stats-grid">
+                <article class="stat-card">
+                    <div class="stat-top">
+                        <span>Total Policies</span>
+                    </div>
+                    <h2 id="totalPolicies">0</h2>
+                    <p>All registered policies</p>
+                </article>
+
+                <article class="stat-card">
+                    <div class="stat-top">
+                        <span>Active Policies</span>
+                    </div>
+                    <h2 id="activePolicies">0</h2>
+                    <p>Policies currently in force</p>
+                </article>
+
+                <article class="stat-card">
+                    <div class="stat-top">
+                        <span>Expiring Soon</span>
+                    </div>
+                    <h2 id="expiringPolicies">0</h2>
+                    <p>Expiry within the next 30 days</p>
+                </article>
+
+                <article class="stat-card">
+                    <div class="stat-top">
+                        <span>Expired Policies</span>
+                    </div>
+                    <h2 id="expiredPolicies">0</h2>
+                    <p>Policies past expiry date</p>
+                </article>
+            </div>
+
+            <!-- ADD / EDIT POLICY FORM -->
+            <section class="card policy-form-card" id="policyFormCard" hidden>
+                <div class="section-heading">
+                    <div>
+                        <h3 id="policyFormTitle">Register New Policy</h3>
+                        <p>Enter the customer, vehicle, and insurance details.</p>
+                    </div>
+                    <button type="button" class="secondary-btn" id="cancelPolicyBtn">
+                        Cancel
+                    </button>
+                </div>
+
+                <form id="policyForm">
+                    <input type="hidden" id="policyId">
+
+                    <div class="policy-form-grid">
+                        <div class="form-group">
+                            <label for="policyCustomer">Customer *</label>
+                            <select id="policyCustomer" required>
+                                <option value="">Select a customer</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="policyNumber">Policy Number *</label>
+                            <input type="text" id="policyNumber"
+                                   maxlength="50" required
+                                   placeholder="e.g. POP-TW-2026-001">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="policyVehicle">Vehicle Number *</label>
+                            <input type="text" id="policyVehicle"
+                                   maxlength="20" required
+                                   placeholder="e.g. TN 38 AB 1234">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="policyModel">Vehicle Model</label>
+                            <input type="text" id="policyModel"
+                                   maxlength="100"
+                                   placeholder="e.g. Honda Activa">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="insuranceCompany">Insurance Company *</label>
+                            <input type="text" id="insuranceCompany"
+                                   maxlength="100" required
+                                   placeholder="Enter insurer name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="policyType">Policy Type *</label>
+                            <select id="policyType" required>
+                                <option value="Comprehensive">Comprehensive</option>
+                                <option value="Third-Party">Third-Party</option>
+                                <option value="Own Damage">Own Damage</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="policyStartDate">Start Date *</label>
+                            <input type="date" id="policyStartDate" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="policyExpiryDate">Expiry Date *</label>
+                            <input type="date" id="policyExpiryDate" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="policyPremium">Premium Amount (₹) *</label>
+                            <input type="number" id="policyPremium"
+                                   min="0.01" max="100000000"
+                                   step="0.01" required
+                                   placeholder="Enter premium amount">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="policyStatus">Policy Status</label>
+                            <select id="policyStatus">
+                                <option value="Active">Active</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Expired">Expired</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="policy-form-actions">
+                        <button type="submit" class="primary-btn" id="savePolicyBtn">
+                            Save Policy
+                        </button>
+                        <button type="button" class="secondary-btn" id="resetPolicyBtn">
+                            Clear Form
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- POLICY LIST -->
+            <section class="card">
+                <div class="section-heading">
+                    <div>
+                        <h3>All Policies</h3>
+                        <p>Search, filter, edit, and review registered policies.</p>
+                    </div>
+                    <button type="button" class="secondary-btn" id="exportPoliciesBtn">
+                        ↓ Export CSV
+                    </button>
+                </div>
+
+                <div class="policy-toolbar">
+                    <div class="form-group">
+                        <label for="policySearch">Search</label>
+                        <input type="search" id="policySearch"
+                               placeholder="Policy number, customer, vehicle...">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="policyStatusFilter">Status</label>
+                        <select id="policyStatusFilter">
+                            <option value="All">All Statuses</option>
+                            <option value="Active">Active</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Expired">Expired</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="policyTypeFilter">Policy Type</label>
+                        <select id="policyTypeFilter">
+                            <option value="All">All Types</option>
+                            <option value="Comprehensive">Comprehensive</option>
+                            <option value="Third-Party">Third-Party</option>
+                            <option value="Own Damage">Own Damage</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="policyPageSize">Rows per page</label>
+                        <select id="policyPageSize">
+                            <option value="5">5 rows</option>
+                            <option value="10" selected>10 rows</option>
+                            <option value="20">20 rows</option>
+                        </select>
+                    </div>
+                </div>
+
+                <p id="policyMessage" class="customer-message"
+                   role="status" aria-live="polite"></p>
+
+                <div class="table-wrap">
+                    <table class="data-table policy-table">
+                        <thead>
+                            <tr>
+                                <th>Policy Number</th>
+                                <th>Customer</th>
+                                <th>Vehicle Number</th>
+                                <th>Policy Type</th>
+                                <th>Premium</th>
+                                <th>Expiry Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="policiesTableBody">
+                            <tr>
+                                <td colspan="8">Loading policies...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination-bar">
+                    <span id="policyPageInfo">Showing 0 policies</span>
+                    <div class="pagination-controls">
+                        <button type="button" class="secondary-btn" id="policyPrevBtn">
+                            Previous
+                        </button>
+                        <span id="policyPageNumber">Page 1 of 1</span>
+                        <button type="button" class="secondary-btn" id="policyNextBtn">
+                            Next
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <footer class="app-footer">
+                © 2026 Popoye Insurance. All rights reserved.
+            </footer>
+
+        </section>
+    </main>
 </div>
-
-<!-- Add/Edit Policy Modal -->
-<div class="modal-overlay" id="policyModal" hidden>
-  <section class="modal-card" role="dialog" aria-modal="true"
-           aria-labelledby="modalTitle">
-    <div class="modal-heading">
-      <div>
-        <h2 id="modalTitle">Add New Policy</h2>
-        <p>Enter the insurance policy details.</p>
-      </div>
-      <button type="button" id="closeModalBtn" class="close-btn"
-              aria-label="Close">×</button>
-    </div>
-
-    <form id="policyForm">
-      <input type="hidden" id="editPolicyId">
-
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="customerSelect">Customer *</label>
-          <select id="customerSelect" required>
-            <option value="">Select a customer</option>
-          </select>
-          <small id="customerHelp">Register a customer first if none appear.</small>
-        </div>
-
-        <div class="form-group">
-          <label for="policyNumber">Policy Number *</label>
-          <input id="policyNumber" type="text" maxlength="40"
-                 placeholder="e.g. POP-2026-0001" required>
-        </div>
-
-        <div class="form-group">
-          <label for="insuranceType">Insurance Type *</label>
-          <select id="insuranceType" required>
-            <option value="">Select insurance type</option>
-            <option value="Third Party">Third Party</option>
-            <option value="Comprehensive">Comprehensive</option>
-            <option value="Own Damage">Own Damage</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="premiumAmount">Premium Amount (₹) *</label>
-          <input id="premiumAmount" type="number" min="0.01"
-                 max="100000000" step="0.01" placeholder="e.g. 2500" required>
-        </div>
-
-        <div class="form-group">
-          <label for="startDate">Policy Start Date *</label>
-          <input id="startDate" type="date" required>
-        </div>
-
-        <div class="form-group">
-          <label for="expiryDate">Policy Expiry Date *</label>
-          <input id="expiryDate" type="date" required>
-        </div>
-
-        <div class="form-group full-width">
-          <label for="policyNotes">Notes</label>
-          <textarea id="policyNotes" rows="3" maxlength="500"
-                    placeholder="Optional policy notes"></textarea>
-        </div>
-      </div>
-
-      <div class="form-actions">
-        <button type="button" id="cancelBtn" class="secondary-btn">Cancel</button>
-        <button type="submit" id="savePolicyBtn" class="primary-btn">Save Policy</button>
-      </div>
-    </form>
-  </section>
-</div>
-
-<script src="policies.js"></script>
 </body>
 </html>

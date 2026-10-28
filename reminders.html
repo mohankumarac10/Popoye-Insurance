@@ -5,146 +5,203 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reminders | Popoye Insurance</title>
-  <link rel="stylesheet" href="reminders.css">
-  <script src="reminders.js" defer></script>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="app-body">
+
   <div class="app-layout">
     <aside class="sidebar" id="sidebar">
-      <div class="brand">
-        <img src="images/logo.png" alt="Popoye Insurance logo">
+      <div class="sidebar-brand">
+        <img src="images/logo.png" alt="Popoye Insurance Logo">
         <div>
-          <h2>Popoye</h2>
-          <span>Insurance</span>
+          <h2>Popoye Insurance</h2>
+          <p>Insurance Management</p>
         </div>
       </div>
 
-      <p class="menu-heading">MAIN MENU</p>
-      <nav class="navigation">
-        <a href="index.html"><span>▦</span> Dashboard</a>
-        <a href="customers.html"><span>♙</span> Customers</a>
-        <a href="policies.html"><span>▤</span> Policies</a>
-        <a href="payments.html"><span>₹</span> Payments</a>
-        <a href="reminders.html" class="active"><span>◷</span> Reminders</a>
-        <a href="reports.html"><span>▥</span> Reports</a>
-        <a href="settings.html"><span>⚙</span> Settings</a>
+      <p class="sidebar-label">MAIN MENU</p>
+      <nav class="sidebar-nav">
+        <a href="dashboard.html" class="nav-link"><span></span> Dashboard</a>
+        <a href="customers.html" class="nav-link"><span></span> Customers</a>
+        <a href="policies.html" class="nav-link"><span></span> Policies</a>
+        <a href="payments.html" class="nav-link"><span></span> Payments</a>
+        <a href="reports.html" class="nav-link"><span></span> Reports</a>
+        <a href="reminders.html" class="nav-link active"><span></span> Reminders</a>
+        <a href="settings.html" class="nav-link"><span></span> Settings</a>
       </nav>
 
       <div class="sidebar-bottom">
-        <div class="demo-note">
-          Renewal tracking
-          <small>Messages require your confirmation.</small>
+        <div class="sidebar-help">
+          <strong>Need help?</strong>
+          <p>Keep track of upcoming policy renewals.</p>
         </div>
-        <button id="logoutBtn" class="logout-btn" type="button">↪ Log out</button>
+        <button class="logout-btn" id="logoutBtn" type="button">⇥ Logout</button>
       </div>
     </aside>
 
     <main class="main-content">
       <header class="topbar">
-        <button id="menuToggle" class="menu-toggle" type="button" aria-label="Toggle menu">☰</button>
-        <div class="page-title">
-          <h1>Renewal Reminders</h1>
-          <p>Track expiring two-wheeler policies and contact customers.</p>
+        <button class="menu-toggle" id="menuToggle" type="button"
+          aria-label="Toggle navigation">☰</button>
+        <div>
+          <h2>Reminders</h2>
+          <p>Manage insurance renewal reminders</p>
         </div>
-        <button id="exportBtn" class="primary-btn" type="button">↓ Export CSV</button>
+        <div class="topbar-actions">
+          <span class="admin-avatar">P</span>
+          <div>
+            <strong>Administrator</strong>
+            <p>Admin Account</p>
+          </div>
+        </div>
       </header>
 
-      <section class="stats-grid">
-        <article class="stat-card">
-          <span>Overdue Policies</span>
-          <h2 id="overdueCount">0</h2>
-          <p>Expiry date has passed</p>
-        </article>
-        <article class="stat-card">
-          <span>Expiring in 7 Days</span>
-          <h2 id="weekCount">0</h2>
-          <p>Renewal needs attention</p>
-        </article>
-        <article class="stat-card">
-          <span>Expiring in 30 Days</span>
-          <h2 id="monthCount">0</h2>
-          <p>Upcoming renewals</p>
-        </article>
-        <article class="stat-card">
-          <span>Future Policies</span>
-          <h2 id="futureCount">0</h2>
-          <p>Expiry is more than 30 days away</p>
-        </article>
-      </section>
-
-      <section class="reminder-banner">
-        <div class="banner-icon">◷</div>
-        <div>
-          <h2>Stay ahead of renewals</h2>
-          <p>Review the expiry date, confirm the premium, and contact each customer before sending a reminder.</p>
-        </div>
-      </section>
-
-      <section class="content-card">
-        <div class="section-heading">
+      <div class="page-container">
+        <section class="page-header">
           <div>
-            <h2>Policy Renewal List</h2>
-            <p id="listSubtitle">Policies sorted by nearest expiry date.</p>
+            <h1>Renewal Reminders</h1>
+            <p>Track expiring policies and follow up with customers.</p>
           </div>
+          <button class="primary-btn" id="refreshReminders" type="button">
+            ↻ Refresh
+          </button>
+        </section>
+
+        <div class="reminder-notice">
+          <strong>Demo mode:</strong>
+          WhatsApp actions open a prepared message for review. Messages are not
+          sent automatically through the WhatsApp API.
         </div>
 
-        <div class="filters">
-          <input id="searchInput" type="search" placeholder="Search customer, vehicle or phone..." aria-label="Search reminders">
+        <section class="stats-grid reminder-stats">
+          <article class="stat-card">
+            <div class="stat-top">
+              <span>Renewals Due Soon</span>
+              <span class="stat-icon">◷</span>
+            </div>
+            <h2 id="dueSoonCount">0</h2>
+            <p>Expiring within 30 days</p>
+          </article>
 
-          <select id="statusFilter" aria-label="Filter policies">
-            <option value="">All expiry statuses</option>
-            <option value="overdue">Overdue</option>
-            <option value="week">Expiring in 7 days</option>
-            <option value="month">Expiring in 30 days</option>
-            <option value="future">More than 30 days</option>
-          </select>
+          <article class="stat-card">
+            <div class="stat-top">
+              <span>Already Expired</span>
+              <span class="stat-icon">!</span>
+            </div>
+            <h2 id="expiredCount">0</h2>
+            <p>Policies past expiry date</p>
+          </article>
 
-          <select id="messageFilter" aria-label="Filter reminder records">
-            <option value="">All reminder records</option>
-            <option value="sent">Marked contacted</option>
-            <option value="notSent">Not marked contacted</option>
-          </select>
-        </div>
+          <article class="stat-card">
+            <div class="stat-top">
+              <span>Reminders Contacted</span>
+              <span class="stat-icon">✓</span>
+            </div>
+            <h2 id="contactedCount">0</h2>
+            <p>Marked as contacted</p>
+          </article>
 
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Customer</th>
-                <th>Vehicle</th>
-                <th>Policy Number</th>
-                <th>Premium</th>
-                <th>Expiry Date</th>
-                <th>Days Left</th>
-                <th>Renewal Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="remindersTableBody"></tbody>
-          </table>
-        </div>
+          <article class="stat-card">
+            <div class="stat-top">
+              <span>Follow-up Required</span>
+              <span class="stat-icon">↗</span>
+            </div>
+            <h2 id="followupCount">0</h2>
+            <p>Not yet marked contacted</p>
+          </article>
+        </section>
 
-        <div id="emptyState" class="empty-state" hidden>
-          <h3>No renewal records found</h3>
-          <p>Add policies or change your search and filters.</p>
-        </div>
-
-        <div class="pagination">
-          <span id="paginationInfo">Showing 0 of 0</span>
-          <div class="pagination-controls">
-            <button id="prevPage" class="page-btn" type="button">Previous</button>
-            <span id="pageNumbers"></span>
-            <button id="nextPage" class="page-btn" type="button">Next</button>
+        <section class="card reminder-settings-card">
+          <div class="section-heading">
+            <div>
+              <h2>Reminder Preferences</h2>
+              <p>Choose which expiry dates to display.</p>
+            </div>
           </div>
-        </div>
-      </section>
 
-      <p class="footer-note">
-        Popoye Insurance · Reminder tracking is stored in this browser.
-      </p>
+          <div class="reminder-preferences">
+            <div class="form-group">
+              <label for="reminderDays">Show policies expiring within</label>
+              <select id="reminderDays">
+                <option value="7">7 days</option>
+                <option value="15">15 days</option>
+                <option value="30" selected>30 days</option>
+                <option value="60">60 days</option>
+                <option value="90">90 days</option>
+                <option value="all">All policies</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="reminderSearch">Search customers</label>
+              <input type="search" id="reminderSearch"
+                placeholder="Name, vehicle or policy number">
+            </div>
+
+            <div class="form-group">
+              <label for="reminderStatusFilter">Reminder status</label>
+              <select id="reminderStatusFilter">
+                <option value="">All statuses</option>
+                <option value="Pending">Follow-up required</option>
+                <option value="Contacted">Contacted</option>
+                <option value="Renewed">Renewed</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="section-heading">
+            <div>
+              <h2>Renewal Follow-up List</h2>
+              <p>Review each policy and prepare customer reminders.</p>
+            </div>
+            <button class="secondary-btn" id="exportReminders" type="button">
+              Export CSV
+            </button>
+          </div>
+
+          <p class="reminder-message" id="reminderMessage" role="status"></p>
+
+          <div class="table-wrap">
+            <table class="data-table reminder-table">
+              <thead>
+                <tr>
+                  <th>Customer</th>
+                  <th>Contact</th>
+                  <th>Vehicle</th>
+                  <th>Policy Number</th>
+                  <th>Expiry Date</th>
+                  <th>Days Left</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="remindersTableBody"></tbody>
+            </table>
+          </div>
+
+          <div class="pagination-bar">
+            <span id="reminderPageInfo">Showing 0 records</span>
+            <div class="pagination-controls">
+              <button class="secondary-btn" id="reminderPrevPage" type="button">
+                Previous
+              </button>
+              <span id="reminderPageNumber">Page 1</span>
+              <button class="secondary-btn" id="reminderNextPage" type="button">
+                Next
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <footer class="app-footer">
+          © 2026 Popoye Insurance. All rights reserved.
+        </footer>
+      </div>
     </main>
   </div>
 
-  <div id="notice" class="notice" role="status" aria-live="polite"></div>
+  <script src="reminders.js"></script>
 </body>
 </html>

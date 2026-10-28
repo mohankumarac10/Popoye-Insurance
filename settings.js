@@ -1,201 +1,210 @@
 
 "use strict";
 
-const SETTINGS_KEY = "popoyeInsuranceSettings";
-const THEME_KEY = "popoyeTheme";
+document.addEventListener("DOMContentLoaded", function () {
+  // ==========================================
+  // POPOYE INSURANCE - SETTINGS MODULE
+  // Browser localStorage demo
+  // ==========================================
 
-const DEFAULT_SETTINGS = {
-  businessName: "Popoye Insurance",
-  businessPhone: "",
-  businessEmail: "",
-  reminderDays: "30",
-  reminderChannel: "WhatsApp",
-  enableReminders: true,
-  themePreference: "light"
-};
+  const SETTINGS_KEY = "popoyeInsuranceSettings";
+  const THEME_KEY = "popoyeTheme";
+  const LOGIN_KEY = "popoyeLoggedIn";
 
-const settingsForm = document.getElementById("settingsForm");
-const message = document.getElementById("message");
+  const DEFAULT_SETTINGS = {
+    businessName: "Popoye Insurance",
+    businessEmail: "",
+    businessPhone: "",
+    businessAddress: "",
+    reminderDays: "30",
+    reminderChannel: "WhatsApp",
+    enableReminders: true,
+    themePreference: "light"
+  };
 
-function readSettings() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
+  const form = document.getElementById("settingsForm");
+  const businessName = document.getElementById("businessName");
+  const businessEmail = document.getElementById("businessEmail");
+  const businessPhone = document.getElementById("businessPhone");
+  const businessAddress = document.getElementById("businessAddress");
+  const reminderDays = document.getElementById("reminderDays");
+  const reminderChannel = document.getElementById("reminderChannel");
+  const enableReminders = document.getElementById("enableReminders");
+  const themeLight = document.getElementById("themeLight");
+  const themeDark = document.getElementById("themeDark");
+  const settingsMessage = document.getElementById("settingsMessage");
+  const resetSettingsBtn = document.getElementById("resetSettingsBtn");
+  const menuToggle = document.getElementById("menuToggle");
+  const sidebar = document.getElementById("sidebar");
+  const logoutBtn = document.getElementById("logoutBtn");
 
-    if (!saved || typeof saved !== "object" || Array.isArray(saved)) {
-      return { ...DEFAULT_SETTINGS };
-    }
-
-    return { ...DEFAULT_SETTINGS, ...saved };
-  } catch (error) {
-    return { ...DEFAULT_SETTINGS };
-  }
-}
-
-function showMessage(text, type = "success") {
-  message.textContent = text;
-  message.className = `message ${type}`;
-
-  window.clearTimeout(showMessage.timeoutId);
-  showMessage.timeoutId = window.setTimeout(() => {
-    message.textContent = "";
-    message.className = "message";
-  }, 3500);
-}
-
-function applyTheme(theme) {
-  const selectedTheme = theme === "dark" ? "dark" : "light";
-
-  document.body.classList.toggle(
-    "dark-theme",
-    selectedTheme === "dark"
-  );
-
-  localStorage.setItem(THEME_KEY, selectedTheme);
-}
-
-function loadSettings() {
-  const settings = readSettings();
-
-  document.getElementById("businessName").value =
-    settings.businessName || DEFAULT_SETTINGS.businessName;
-
-  document.getElementById("businessPhone").value =
-    settings.businessPhone || "";
-
-  document.getElementById("businessEmail").value =
-    settings.businessEmail || "";
-
-  document.getElementById("reminderDays").value =
-    ["7", "15", "30", "45", "60"].includes(String(settings.reminderDays))
-      ? String(settings.reminderDays)
-      : "30";
-
-  document.getElementById("reminderChannel").value =
-    ["WhatsApp", "SMS", "Email"].includes(settings.reminderChannel)
-      ? settings.reminderChannel
-      : "WhatsApp";
-
-  document.getElementById("enableReminders").checked =
-    settings.enableReminders !== false;
-
-  const storedTheme = localStorage.getItem(THEME_KEY);
-  const preferredTheme =
-    storedTheme === "dark" || storedTheme === "light"
-      ? storedTheme
-      : settings.themePreference;
-
-  document.getElementById("themePreference").value =
-    preferredTheme === "dark" ? "dark" : "light";
-
-  applyTheme(preferredTheme);
-}
-
-function saveSettings(event) {
-  event.preventDefault();
-
-  const businessName =
-    document.getElementById("businessName").value.trim();
-
-  const businessPhone =
-    document.getElementById("businessPhone").value.trim();
-
-  const businessEmail =
-    document.getElementById("businessEmail").value.trim();
-
-  if (!businessName) {
-    showMessage("Please enter your business name.", "error");
+  // Require login, matching the other application pages.
+  if (localStorage.getItem(LOGIN_KEY) !== "true") {
+    window.location.replace("login.html");
     return;
   }
 
-  const settings = {
-    businessName,
-    businessPhone,
-    businessEmail,
-    reminderDays: document.getElementById("reminderDays").value,
-    reminderChannel: document.getElementById("reminderChannel").value,
-    enableReminders: document.getElementById("enableReminders").checked,
-    themePreference: document.getElementById("themePreference").value
-  };
+  function readSettings() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
 
-  try {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+      if (!saved || typeof saved !== "object" || Array.isArray(saved)) {
+        return { ...DEFAULT_SETTINGS };
+      }
+
+      return { ...DEFAULT_SETTINGS, ...saved };
+    } catch (error) {
+      console.error("Unable to read settings:", error);
+      return { ...DEFAULT_SETTINGS };
+    }
+  }
+
+  function showMessage(message, type) {
+    settingsMessage.textContent = message;
+    settingsMessage.className = "settings-message " + type;
+  }
+
+  function applyTheme(theme) {
+    const selectedTheme = theme === "dark" ? "dark" : "light";
+
+    document.body.classList.toggle(
+      "dark-theme",
+      selectedTheme === "dark"
+    );
+
+    themeLight.checked = selectedTheme === "light";
+    themeDark.checked = selectedTheme === "dark";
+
+    // Keep the theme key compatible with the rest of the website.
+    try {
+      localStorage.setItem(THEME_KEY, selectedTheme);
+    } catch (error) {
+      console.error("Unable to save theme:", error);
+    }
+  }
+
+  function fillForm(settings) {
+    businessName.value = settings.businessName || "";
+    businessEmail.value = settings.businessEmail || "";
+    businessPhone.value = settings.businessPhone || "";
+    businessAddress.value = settings.businessAddress || "";
+
+    reminderDays.value = String(settings.reminderDays || "30");
+    reminderChannel.value = settings.reminderChannel || "WhatsApp";
+    enableReminders.checked = settings.enableReminders !== false;
+
     applyTheme(settings.themePreference);
-    showMessage("Settings saved successfully!");
-  } catch (error) {
-    showMessage(
-      "Could not save settings. Check your browser storage.",
-      "error"
+  }
+
+  function getFormSettings() {
+    return {
+      businessName: businessName.value.trim(),
+      businessEmail: businessEmail.value.trim(),
+      businessPhone: businessPhone.value.trim(),
+      businessAddress: businessAddress.value.trim(),
+      reminderDays: reminderDays.value,
+      reminderChannel: reminderChannel.value,
+      enableReminders: enableReminders.checked,
+      themePreference: themeDark.checked ? "dark" : "light"
+    };
+  }
+
+  function saveSettings(event) {
+    if (event) {
+      event.preventDefault();
+    }
+
+    if (!form.reportValidity()) {
+      return;
+    }
+
+    const settings = getFormSettings();
+
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+      applyTheme(settings.themePreference);
+
+      showMessage("Settings saved successfully.", "success");
+    } catch (error) {
+      console.error("Unable to save settings:", error);
+      showMessage(
+        "Unable to save settings. Check your browser storage.",
+        "error"
+      );
+    }
+  }
+
+  // Save form settings.
+  form.addEventListener("submit", saveSettings);
+
+  // Apply appearance immediately when selected.
+  themeLight.addEventListener("change", function () {
+    if (themeLight.checked) {
+      applyTheme("light");
+      showMessage("Light mode selected. Click Save Settings to save.", "success");
+    }
+  });
+
+  themeDark.addEventListener("change", function () {
+    if (themeDark.checked) {
+      applyTheme("dark");
+      showMessage("Dark mode selected. Click Save Settings to save.", "success");
+    }
+  });
+
+  // Restore default settings.
+  resetSettingsBtn.addEventListener("click", function () {
+    const confirmed = window.confirm(
+      "Reset all settings to their default values?"
     );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      localStorage.setItem(
+        SETTINGS_KEY,
+        JSON.stringify(DEFAULT_SETTINGS)
+      );
+
+      fillForm(DEFAULT_SETTINGS);
+      showMessage("Default settings restored.", "success");
+    } catch (error) {
+      console.error("Unable to reset settings:", error);
+      showMessage("Unable to reset settings.", "error");
+    }
+  });
+
+  // Mobile sidebar toggle.
+  if (menuToggle && sidebar) {
+    menuToggle.addEventListener("click", function () {
+      sidebar.classList.toggle("active");
+    });
   }
-}
 
-function restoreDefaults() {
-  const confirmed = window.confirm(
-    "Restore the default settings? Your customer, policy, and payment records will not be deleted."
-  );
+  // Logout.
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", function () {
+      const confirmed = window.confirm("Are you sure you want to log out?");
 
-  if (!confirmed) return;
-
-  try {
-    localStorage.setItem(
-      SETTINGS_KEY,
-      JSON.stringify({ ...DEFAULT_SETTINGS })
-    );
-
-    loadSettings();
-    showMessage("Default settings restored.");
-  } catch (error) {
-    showMessage("Could not restore settings.", "error");
+      if (confirmed) {
+        localStorage.removeItem(LOGIN_KEY);
+        window.location.href = "login.html";
+      }
+    });
   }
-}
 
-function getRecordCount(key) {
-  try {
-    const records = JSON.parse(localStorage.getItem(key) || "[]");
-    return Array.isArray(records) ? records.length : 0;
-  } catch (error) {
-    return 0;
+  // Load saved settings and restore the saved appearance.
+  const savedSettings = readSettings();
+
+  // Support the older theme key if settings have no saved preference.
+  if (!localStorage.getItem(SETTINGS_KEY)) {
+    const savedTheme = localStorage.getItem(THEME_KEY);
+    if (savedTheme === "dark" || savedTheme === "light") {
+      savedSettings.themePreference = savedTheme;
+    }
   }
-}
 
-function updateDataOverview() {
-  document.getElementById("customerCount").textContent =
-    getRecordCount("popoyeCustomers");
-
-  document.getElementById("policyCount").textContent =
-    getRecordCount("popoyePolicies");
-
-  document.getElementById("paymentCount").textContent =
-    getRecordCount("popoyePayments");
-}
-
-document.getElementById("themePreference").addEventListener(
-  "change",
-  function () {
-    applyTheme(this.value);
-  }
-);
-
-settingsForm.addEventListener("submit", saveSettings);
-
-document.getElementById("resetBtn").addEventListener(
-  "click",
-  restoreDefaults
-);
-
-document.getElementById("menuBtn").addEventListener("click", function () {
-  document.getElementById("sidebar").classList.toggle("open");
+  fillForm(savedSettings);
 });
-
-document.getElementById("logoutBtn").addEventListener("click", function () {
-  sessionStorage.removeItem("popoyeLoggedIn");
-  window.location.href = "login.html";
-});
-
-// Protect this page using the existing demo login session.
-if (sessionStorage.getItem("popoyeLoggedIn") !== "true") {
-  window.location.replace("login.html");
-} else {
-  loadSettings();
-  updateDataOverview();
-}

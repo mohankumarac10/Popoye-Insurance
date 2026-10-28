@@ -1,0 +1,1923 @@
+
+:root {
+    --navy: #142B4A;
+    --teal: #0D9488;
+    --background: #F4F7FB;
+    --surface: #FFFFFF;
+    --text: #24364B;
+    --muted: #718096;
+    --border: #E3EAF2;
+    --danger: #DC2626;
+    --shadow: 0 10px 35px rgba(20, 43, 74, 0.08);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--background);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+button, input, select, textarea {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+/* LOGIN PAGE */
+
+.login-body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: linear-gradient(135deg, #F4F7FB, #E5F4F2);
+}
+
+.login-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    max-width: 950px;
+    min-height: 540px;
+    background: var(--surface);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.login-brand {
+    background: var(--navy);
+    color: white;
+    padding: 55px 42px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.login-logo {
+    width: 110px;
+    height: 110px;
+    object-fit: contain;
+    background: white;
+    border-radius: 14px;
+    padding: 8px;
+    margin-bottom: 25px;
+}
+
+.login-brand h1 {
+    font-size: 29px;
+    line-height: 1.3;
+    margin-bottom: 12px;
+}
+
+.login-brand > p {
+    color: #D6E1EF;
+    max-width: 340px;
+}
+
+.login-features {
+    margin-top: 32px;
+}
+
+.login-features p {
+    margin: 12px 0;
+    color: #F0F7FF;
+}
+
+.login-form-section {
+    padding: 55px 42px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.login-form-section h2 {
+    color: var(--navy);
+    font-size: 28px;
+    margin-bottom: 5px;
+}
+
+.muted-text {
+    color: var(--muted);
+    margin-bottom: 28px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--navy);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    color: var(--text);
+    outline: none;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+}
+
+.primary-btn {
+    border: none;
+    border-radius: 8px;
+    padding: 12px 18px;
+    background: var(--teal);
+    color: white;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.primary-btn:hover {
+    background: #0B7D73;
+}
+
+.login-btn {
+    width: 100%;
+    margin-top: 5px;
+}
+
+.login-message {
+    color: var(--danger);
+    min-height: 8px;
+    margin-bottom: 10px;
+}
+
+.login-footer {
+    margin-top: 32px;
+    color: var(--muted);
+    font-size: 12px;
+    text-align: center;
+}
+
+/* SHARED COMPONENTS FOR OTHER PAGES */
+
+.page-container {
+    padding: 28px;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.page-header h1 {
+    color: var(--navy);
+    font-size: 26px;
+}
+
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.data-table th,
+.data-table td {
+    padding: 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+.data-table th {
+    background: var(--background);
+    color: var(--navy);
+}
+
+@media (max-width: 700px) {
+    .login-container {
+        grid-template-columns: 1fr;
+    }
+
+    .login-brand,
+    .login-form-section {
+        padding: 32px 24px;
+    }
+
+    .login-brand h1 {
+        font-size: 25px;
+    }
+
+    .login-logo {
+        width: 85px;
+        height: 85px;
+    }
+
+    .page-container {
+        padding: 16px;
+    }
+}
+
+/* =====================================
+   POPOYE INSURANCE - DASHBOARD LAYOUT
+===================================== */
+
+.app-body {
+    min-height: 100vh;
+    background: var(--background);
+}
+
+.app-layout {
+    min-height: 100vh;
+}
+
+.sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    width: 250px;
+    height: 100vh;
+    padding: 24px 16px;
+    background: var(--navy);
+    color: #FFFFFF;
+    overflow-y: auto;
+}
+
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 8px 28px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.sidebar-brand img {
+    width: 48px;
+    height: 48px;
+    padding: 3px;
+    object-fit: contain;
+    background: #FFFFFF;
+    border-radius: 10px;
+}
+
+.sidebar-brand h2 {
+    font-size: 20px;
+    line-height: 1.3;
+}
+
+.sidebar-brand span {
+    display: block;
+    color: #B9D4E5;
+    font-size: 10px;
+    letter-spacing: 2px;
+}
+
+.sidebar-label {
+    padding: 26px 12px 12px;
+    color: #AFC1D5;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    color: #DCE6F1;
+    text-decoration: none;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: #FFFFFF;
+    background: var(--teal);
+}
+
+.nav-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    font-size: 19px;
+}
+
+.sidebar-bottom {
+    margin-top: auto;
+    padding-top: 24px;
+}
+
+.sidebar-help {
+    padding: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.17);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-help p {
+    margin-top: 5px;
+    color: #C2D0E0;
+    font-size: 12px;
+}
+
+.logout-btn {
+    width: 100%;
+    margin-top: 12px;
+    padding: 11px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #FFFFFF;
+    background: transparent;
+    text-align: left;
+}
+
+.logout-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.main-content {
+    min-height: 100vh;
+    margin-left: 250px;
+}
+
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 88px;
+    padding: 18px 30px;
+    background: #FFFFFF;
+    border-bottom: 1px solid var(--border);
+}
+
+.topbar-heading h2 {
+    color: var(--navy);
+    font-size: 21px;
+}
+
+.topbar-heading p {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.topbar-actions strong,
+.topbar-actions small {
+    display: block;
+}
+
+.topbar-actions small {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.admin-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #DDF4F0;
+    color: var(--navy);
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.menu-toggle {
+    display: none;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #FFFFFF;
+    color: var(--navy);
+}
+
+.page-container {
+    padding: 28px 30px;
+}
+
+.page-header p {
+    margin-top: 4px;
+    margin-bottom: 0;
+}
+
+.date-badge,
+.chart-label {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--navy);
+    background: #FFFFFF;
+    font-size: 12px;
+}
+
+/* SUMMARY CARDS */
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 22px;
+}
+
+.stat-card {
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #FFFFFF;
+    box-shadow: var(--shadow);
+}
+
+.stat-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.stat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    font-size: 21px;
+    font-weight: 700;
+}
+
+.icon-blue {
+    color: #2563EB;
+    background: #EAF1FF;
+}
+
+.icon-teal {
+    color: #0D9488;
+    background: #DDF7F2;
+}
+
+.icon-green {
+    color: #16803C;
+    background: #E2F8E8;
+}
+
+.icon-orange {
+    color: #C56A13;
+    background: #FFF0DD;
+}
+
+.stat-card h2 {
+    margin-top: 13px;
+    color: var(--navy);
+    font-size: 28px;
+    overflow-wrap: anywhere;
+}
+
+.stat-card > p {
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+/* CHART AND CONTENT GRIDS */
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: 20px;
+    margin-bottom: 22px;
+}
+
+.chart-card {
+    min-width: 0;
+}
+
+.section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 22px;
+}
+
+.section-heading h3 {
+    color: var(--navy);
+    font-size: 16px;
+}
+
+.section-heading p {
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 270px;
+}
+
+.chart-container canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.donut-layout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 26px;
+    min-height: 230px;
+}
+
+.donut-chart {
+    display: grid;
+    place-items: center;
+    width: 175px;
+    height: 175px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: conic-gradient(
+        #0D9488 0deg 0deg,
+        #E3EAF2 0deg 360deg
+    );
+    position: relative;
+}
+
+.donut-chart::before {
+    content: "";
+    position: absolute;
+    inset: 18px;
+    border-radius: 50%;
+    background: #FFFFFF;
+}
+
+.donut-center {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.donut-center strong {
+    color: var(--navy);
+    font-size: 28px;
+}
+
+.donut-center span {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.chart-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.chart-legend p {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+}
+
+.chart-legend strong {
+    margin-left: auto;
+    padding-left: 12px;
+    color: var(--navy);
+}
+
+.legend-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    flex-shrink: 0;
+    border-radius: 50%;
+}
+
+.dot-active {
+    background: #0D9488;
+}
+
+.dot-expired {
+    background: #F59E0B;
+}
+
+.dot-pending {
+    background: #8B9AAF;
+}
+
+/* TABLES */
+
+.lower-grid .card {
+    min-width: 0;
+}
+
+.table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.data-table {
+    min-width: 390px;
+    font-size: 12px;
+}
+
+.data-table th,
+.data-table td {
+    padding: 13px 10px;
+    white-space: nowrap;
+}
+
+.data-table th {
+    font-size: 11px;
+}
+
+.data-table td {
+    color: var(--text);
+}
+
+.text-link {
+    color: var(--teal);
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.text-link:hover {
+    text-decoration: underline;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.status-paid,
+.status-active {
+    color: #167647;
+    background: #DCFCE7;
+}
+
+.status-pending {
+    color: #A16207;
+    background: #FEF3C7;
+}
+
+.status-expired,
+.status-failed {
+    color: #B91C1C;
+    background: #FEE2E2;
+}
+
+.app-footer {
+    padding: 20px 0 5px;
+    color: var(--muted);
+    font-size: 12px;
+    text-align: center;
+}
+
+/* RESPONSIVE LAYOUT */
+
+@media (max-width: 1200px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 800px) {
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+    }
+
+    .sidebar.sidebar-open {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+
+    .menu-toggle {
+        display: block;
+    }
+
+    .topbar {
+        padding: 16px;
+        flex-wrap: wrap;
+    }
+
+    .topbar-heading {
+        flex: 1;
+    }
+
+    .page-container {
+        padding: 20px 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .page-header {
+        align-items: flex-start;
+    }
+
+    .topbar-actions > div {
+        display: none;
+    }
+
+    .chart-container {
+        height: 230px;
+    }
+
+    .donut-layout {
+        gap: 18px;
+    }
+}
+
+/* =====================================
+   CUSTOMERS MODULE
+===================================== */
+
+.customer-stats {
+    margin-bottom: 22px;
+}
+
+.customer-form-card {
+    margin-bottom: 22px;
+}
+
+.customer-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 20px;
+}
+
+.customer-address {
+    grid-column: 1 / -1;
+}
+
+.customer-form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.secondary-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #FFFFFF;
+    color: var(--navy);
+    font-weight: 600;
+    font-size: 12px;
+    text-decoration: none;
+}
+
+.secondary-btn:hover:not(:disabled) {
+    background: var(--background);
+    border-color: var(--teal);
+}
+
+.secondary-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.customer-toolbar {
+    display: grid;
+    grid-template-columns: minmax(200px, 2fr) minmax(140px, 1fr) minmax(120px, 1fr);
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.customer-toolbar .form-group {
+    margin-bottom: 12px;
+}
+
+.customer-toolbar label {
+    font-size: 12px;
+}
+
+.customer-message {
+    min-height: 20px;
+    margin: 4px 0 12px;
+    color: var(--teal);
+    font-size: 12px;
+}
+
+.customer-message.error {
+    color: var(--danger);
+}
+
+.customer-table {
+    min-width: 850px;
+}
+
+.customer-table td {
+    vertical-align: middle;
+}
+
+.customer-name-cell strong,
+.customer-name-cell small {
+    display: block;
+}
+
+.customer-name-cell small {
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.customer-actions {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.table-action {
+    padding: 6px 9px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: #FFFFFF;
+    color: var(--navy);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.table-action:hover {
+    border-color: var(--teal);
+    color: var(--teal);
+}
+
+.table-action.delete-action:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.pagination-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 20px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.pagination-controls .secondary-btn {
+    padding: 8px 11px;
+}
+
+@media (max-width: 900px) {
+    .customer-toolbar {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .customer-toolbar .search-field {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 600px) {
+    .customer-form-grid,
+    .customer-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .customer-address,
+    .customer-toolbar .search-field {
+        grid-column: auto;
+    }
+
+    .pagination-bar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+/* =====================================
+   POLICIES MODULE
+===================================== */
+
+.policy-form-card {
+    margin-bottom: 22px;
+}
+
+.policy-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 20px;
+}
+
+.policy-form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.policy-toolbar {
+    display: grid;
+    grid-template-columns: minmax(200px, 2fr) repeat(3, minmax(130px, 1fr));
+    gap: 14px;
+    margin-bottom: 12px;
+}
+
+.policy-toolbar .form-group {
+    margin-bottom: 12px;
+}
+
+.policy-toolbar label {
+    font-size: 12px;
+}
+
+.policy-table {
+    min-width: 1050px;
+}
+
+.policy-table td {
+    vertical-align: middle;
+}
+
+@media (max-width: 1100px) {
+    .policy-toolbar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .policy-form-grid,
+    .policy-toolbar {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ========================================
+   POPOYE INSURANCE - PAYMENTS MODULE
+   ======================================== */
+
+[hidden] {
+  display: none !important;
+}
+
+.demo-notice {
+  margin-bottom: 22px;
+  padding: 14px 18px;
+  border: 1px solid #c9e7e3;
+  border-radius: 10px;
+  background: #eaf8f6;
+  color: #17665f;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.payment-stats {
+  margin-bottom: 24px;
+}
+
+.payment-form-card {
+  margin-bottom: 24px;
+}
+
+.payment-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.payment-form-grid .form-group {
+  min-width: 0;
+}
+
+.payment-form-grid label {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--text, #24364B);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.payment-form-grid input,
+.payment-form-grid select,
+.payment-toolbar input,
+.payment-toolbar select {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid var(--border, #E3EAF2);
+  border-radius: 8px;
+  background: var(--surface, #FFFFFF);
+  color: var(--text, #24364B);
+  font: inherit;
+  outline: none;
+}
+
+.payment-form-grid input:focus,
+.payment-form-grid select:focus,
+.payment-toolbar input:focus,
+.payment-toolbar select:focus {
+  border-color: var(--teal, #0D9488);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+}
+
+.payment-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.payment-toolbar {
+  display: grid;
+  grid-template-columns: minmax(200px, 2fr) repeat(3, minmax(130px, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.payment-table {
+  width: 100%;
+  min-width: 980px;
+}
+
+.payment-table th,
+.payment-table td {
+  padding: 13px 14px;
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.payment-reference {
+  color: var(--navy, #142B4A);
+  font-weight: 700;
+}
+
+.payment-amount {
+  color: var(--navy, #142B4A);
+  font-weight: 700;
+}
+
+.payment-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.payment-status-paid {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.payment-status-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.payment-status-failed {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.payment-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.payment-action-btn {
+  padding: 6px 9px;
+  border: 1px solid var(--border, #E3EAF2);
+  border-radius: 6px;
+  background: var(--surface, #FFFFFF);
+  color: var(--navy, #142B4A);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.payment-action-btn:hover {
+  border-color: var(--teal, #0D9488);
+  color: var(--teal, #0D9488);
+}
+
+.payment-action-delete:hover {
+  border-color: #dc2626;
+  color: #dc2626;
+}
+
+.payment-message {
+  min-height: 20px;
+  margin: 4px 0 12px;
+  color: var(--muted, #718096);
+  font-size: 13px;
+}
+
+.payment-message.message-error {
+  color: #b91c1c;
+}
+
+.payment-message.message-success {
+  color: #047857;
+}
+
+.payment-empty {
+  padding: 30px 16px !important;
+  color: var(--muted, #718096);
+  text-align: center !important;
+}
+
+@media (max-width: 1000px) {
+  .payment-toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .payment-form-grid,
+  .payment-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .payment-form-actions {
+    flex-direction: column;
+  }
+
+  .payment-form-actions button {
+    width: 100%;
+  }
+
+  .payment-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .payment-table th,
+  .payment-table td {
+    padding: 10px;
+  }
+}
+
+/* ========================================
+   POPOYE INSURANCE - REPORTS MODULE
+   ======================================== */
+
+.report-notice {
+  padding: 14px 18px;
+  margin-bottom: 22px;
+  border: 1px solid #c9e7e3;
+  border-radius: 10px;
+  background: #eaf8f6;
+  color: #17665f;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.report-filter-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+  border: 1px solid var(--border, #E3EAF2);
+  border-radius: 12px;
+  background: var(--surface, #FFFFFF);
+}
+
+.report-filter {
+  display: flex;
+  flex: 1 1 200px;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.report-filter label {
+  color: var(--text, #24364B);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.report-filter select {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid var(--border, #E3EAF2);
+  border-radius: 8px;
+  background: var(--surface, #FFFFFF);
+  color: var(--text, #24364B);
+  font: inherit;
+}
+
+.report-stats {
+  margin-bottom: 24px;
+}
+
+.report-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+  margin-bottom: 24px;
+}
+
+.report-panel {
+  min-width: 0;
+}
+
+.report-chart-area {
+  position: relative;
+  width: 100%;
+  height: 280px;
+  margin-top: 16px;
+}
+
+.report-chart-area canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.report-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  margin-top: 12px;
+}
+
+.report-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted, #718096);
+  font-size: 12px;
+}
+
+.report-legend-dot {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  border-radius: 3px;
+}
+
+.report-details-card {
+  margin-bottom: 24px;
+}
+
+.report-table {
+  width: 100%;
+  min-width: 650px;
+}
+
+.report-table th,
+.report-table td {
+  padding: 13px 15px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.report-table .report-empty {
+  padding: 28px 15px;
+  color: var(--muted, #718096);
+  text-align: center;
+}
+
+.report-message {
+  min-height: 20px;
+  margin-top: 12px;
+  color: var(--muted, #718096);
+  font-size: 13px;
+}
+
+@media (max-width: 900px) {
+  .report-chart-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .report-filter-card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .report-filter {
+    flex-basis: auto;
+  }
+
+  .report-filter-card button {
+    width: 100%;
+  }
+
+  .report-chart-area {
+    height: 240px;
+  }
+
+  .report-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ========================================
+   POPOYE INSURANCE - REMINDERS MODULE
+   ======================================== */
+
+.reminder-notice {
+  margin-bottom: 22px;
+  padding: 14px 18px;
+  border: 1px solid #c9e7e3;
+  border-radius: 10px;
+  background: #eaf8f6;
+  color: #17665f;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.reminder-stats {
+  margin-bottom: 24px;
+}
+
+.reminder-settings-card {
+  margin-bottom: 24px;
+}
+
+.reminder-preferences {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.reminder-preferences .form-group {
+  min-width: 0;
+}
+
+.reminder-preferences label {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--text, #24364B);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.reminder-preferences input,
+.reminder-preferences select {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid var(--border, #E3EAF2);
+  border-radius: 8px;
+  background: var(--surface, #FFFFFF);
+  color: var(--text, #24364B);
+  font: inherit;
+}
+
+.reminder-preferences input:focus,
+.reminder-preferences select:focus {
+  border-color: var(--teal, #0D9488);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+}
+
+.reminder-table {
+  width: 100%;
+  min-width: 1100px;
+}
+
+.reminder-table th,
+.reminder-table td {
+  padding: 13px 14px;
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.reminder-days {
+  font-weight: 700;
+}
+
+.reminder-days-overdue {
+  color: #dc2626;
+}
+
+.reminder-days-soon {
+  color: #d97706;
+}
+
+.reminder-days-normal {
+  color: #0d9488;
+}
+
+.reminder-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.reminder-status-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.reminder-status-contacted {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.reminder-status-renewed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.reminder-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.reminder-action-btn {
+  padding: 6px 9px;
+  border: 1px solid var(--border, #E3EAF2);
+  border-radius: 6px;
+  background: var(--surface, #FFFFFF);
+  color: var(--navy, #142B4A);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.reminder-action-btn:hover {
+  border-color: var(--teal, #0D9488);
+  color: var(--teal, #0D9488);
+}
+
+.reminder-message {
+  min-height: 20px;
+  margin: 4px 0 12px;
+  color: var(--muted, #718096);
+  font-size: 13px;
+}
+
+.reminder-empty {
+  padding: 30px 16px !important;
+  color: var(--muted, #718096);
+  text-align: center !important;
+}
+
+@media (max-width: 900px) {
+  .reminder-preferences {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .reminder-preferences,
+  .reminder-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .reminder-preferences {
+    gap: 14px;
+  }
+
+  .reminder-table th,
+  .reminder-table td {
+    padding: 10px;
+  }
+}
+
+/* ==========================================
+   POPOYE INSURANCE - SETTINGS PAGE
+   ========================================== */
+
+.settings-card {
+  margin-bottom: 22px;
+  padding: 25px;
+}
+
+.settings-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 25px;
+}
+
+.settings-icon {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  background: #E7F6F4;
+  border-radius: 12px;
+  font-size: 22px;
+}
+
+.settings-section-heading h3 {
+  margin: 0 0 6px;
+  color: var(--navy, #142B4A);
+  font-size: 18px;
+}
+
+.settings-section-heading p {
+  margin: 0;
+  color: var(--muted, #718096);
+  font-size: 13px;
+}
+
+.settings-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.settings-form-grid .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.settings-form-grid label {
+  color: var(--text, #24364B);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.settings-form-grid input,
+.settings-form-grid select {
+  width: 100%;
+  min-height: 44px;
+  padding: 11px 13px;
+  border: 1px solid var(--border, #E3EAF2);
+  border-radius: 8px;
+  background: var(--surface, #FFFFFF);
+  color: var(--text, #24364B);
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+}
+
+.settings-form-grid input:focus,
+.settings-form-grid select:focus {
+  border-color: var(--teal, #0D9488);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+}
+
+.settings-option-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-top: 22px;
+  margin-top: 22px;
+  border-top: 1px solid var(--border, #E3EAF2);
+}
+
+.settings-option-row strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text, #24364B);
+  font-size: 14px;
+}
+
+.settings-option-row p {
+  margin: 0;
+  color: var(--muted, #718096);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 27px;
+  flex-shrink: 0;
+}
+
+.switch input {
+  width: 0;
+  height: 0;
+  opacity: 0;
+}
+
+.switch-slider {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+  background: #CBD5E1;
+  border-radius: 30px;
+  transition: 0.25s;
+}
+
+.switch-slider::before {
+  position: absolute;
+  content: "";
+  width: 19px;
+  height: 19px;
+  left: 4px;
+  top: 4px;
+  background: #FFFFFF;
+  border-radius: 50%;
+  transition: 0.25s;
+}
+
+.switch input:checked + .switch-slider {
+  background: var(--teal, #0D9488);
+}
+
+.switch input:checked + .switch-slider::before {
+  transform: translateX(21px);
+}
+
+.switch input:focus-visible + .switch-slider {
+  outline: 3px solid rgba(13, 148, 136, 0.3);
+}
+
+.settings-note {
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--background, #F4F7FB);
+  color: var(--muted, #718096);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.theme-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.theme-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 16px;
+  border: 1px solid var(--border, #E3EAF2);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.theme-option:has(input:checked) {
+  border-color: var(--teal, #0D9488);
+  box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.1);
+}
+
+.theme-option input {
+  accent-color: var(--teal, #0D9488);
+}
+
+.theme-option strong {
+  color: var(--text, #24364B);
+  font-size: 14px;
+}
+
+.theme-option small {
+  color: var(--muted, #718096);
+  font-size: 12px;
+}
+
+.theme-preview {
+  width: 100%;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.theme-preview span {
+  display: block;
+  height: 10px;
+  flex: 1;
+  border-radius: 4px;
+}
+
+.light-preview {
+  background: #F4F7FB;
+  border: 1px solid #E3EAF2;
+}
+
+.light-preview span {
+  background: #FFFFFF;
+  border: 1px solid #E3EAF2;
+}
+
+.dark-preview {
+  background: #172335;
+}
+
+.dark-preview span {
+  background: #2B3B50;
+}
+
+.settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 24px 0 10px;
+}
+
+.settings-message {
+  min-height: 20px;
+  margin: 12px 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.settings-message.success {
+  color: #0D9488;
+}
+
+.settings-message.error {
+  color: #DC2626;
+}
+
+/* Dark mode applied by settings.js */
+body.dark-theme {
+  --background: #101827;
+  --surface: #1B2839;
+  --text: #E5EDF7;
+  --muted: #A6B4C7;
+  --border: #334155;
+  background: var(--background);
+  color: var(--text);
+}
+
+body.dark-theme .main-content,
+body.dark-theme .page-container {
+  background: var(--background);
+  color: var(--text);
+}
+
+body.dark-theme .sidebar,
+body.dark-theme .topbar,
+body.dark-theme .card,
+body.dark-theme .settings-card {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+body.dark-theme .sidebar-brand h2,
+body.dark-theme .topbar h1,
+body.dark-theme .topbar strong,
+body.dark-theme .page-header h2,
+body.dark-theme .settings-section-heading h3,
+body.dark-theme .settings-option-row strong,
+body.dark-theme .theme-option strong {
+  color: var(--text);
+}
+
+body.dark-theme .nav-link {
+  color: var(--muted);
+}
+
+body.dark-theme .nav-link.active {
+  background: rgba(13, 148, 136, 0.18);
+  color: #5EEAD4;
+}
+
+body.dark-theme .settings-form-grid input,
+body.dark-theme .settings-form-grid select {
+  background: #111C2B;
+  color: var(--text);
+  border-color: var(--border);
+}
+
+body.dark-theme .settings-note {
+  background: #111C2B;
+}
+
+body.dark-theme .settings-option-row {
+  border-color: var(--border);
+}
+
+body.dark-theme .theme-option {
+  border-color: var(--border);
+}
+
+body.dark-theme .theme-option:has(input:checked) {
+  border-color: #0D9488;
+}
+
+body.dark-theme .secondary-btn {
+  color: var(--text);
+  background: #27364A;
+  border-color: var(--border);
+}
+
+body.dark-theme .data-table th,
+body.dark-theme .data-table td {
+  border-color: var(--border);
+}
+
+@media (max-width: 700px) {
+  .settings-form-grid,
+  .theme-options {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-card {
+    padding: 18px;
+  }
+
+  .settings-option-row {
+    align-items: flex-start;
+  }
+
+  .settings-actions {
+    justify-content: stretch;
+  }
+
+  .settings-actions button {
+    flex: 1;
+  }
+}
