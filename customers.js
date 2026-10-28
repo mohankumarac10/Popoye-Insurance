@@ -1,5 +1,12 @@
 
+"use strict";
+
 document.addEventListener("DOMContentLoaded", function () {
+  // ==========================================
+  // POPOYE INSURANCE - CUSTOMERS MODULE
+  // LocalStorage demo implementation
+  // ==========================================
+
   // Require the demo login session.
   if (sessionStorage.getItem("popoyeLoggedIn") !== "true") {
     window.location.replace("login.html");
@@ -7,12 +14,14 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   const STORAGE_KEY = "popoyeCustomers";
+  const THEME_KEY = "popoyeTheme";
   const PAGE_SIZE = 5;
 
   const $ = function (id) {
     return document.getElementById(id);
   };
 
+  // Main elements required by this page.
   const form = $("customerForm");
   const modal = $("customerModal");
   const tableBody = $("customerTableBody");
@@ -20,32 +29,46 @@ document.addEventListener("DOMContentLoaded", function () {
   const filterSelect = $("customerFilter");
   const message = $("customerMessage");
 
+  if (
+    !form ||
+    !modal ||
+    !tableBody ||
+    !searchInput ||
+    !filterSelect ||
+    !message
+  ) {
+    console.error(
+      "Customers page setup error: Check the required HTML IDs."
+    );
+    return;
+  }
+
   let customers = [];
   let currentPage = 1;
   let messageTimer;
 
-  function loadCustomers() {
-    try {
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-      customers = Array.isArray(saved) ? saved : [];
-    } catch (error) {
-      customers = [];
-      showMessage("Unable to read saved records. Check browser storage.", true);
+  // ==========================================
+  // SAFE EVENT LISTENER
+  // Optional controls will not crash the script.
+  // ==========================================
+
+  function on(id, eventName, handler) {
+    const element = $(id);
+
+    if (element) {
+      element.addEventListener(eventName, handler);
     }
+
+    return element;
   }
 
-  function saveCustomers() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(customers));
-      return true;
-    } catch (error) {
-      showMessage("Unable to save records. Browser storage may be full.", true);
-      return false;
-    }
-  }
+  // ==========================================
+  // MESSAGES
+  // ==========================================
 
   function showMessage(text, isError = false) {
     clearTimeout(messageTimer);
+
     message.textContent = text;
     message.style.color = isError ? "#DC2626" : "#0D9488";
 
@@ -54,32 +77,86 @@ document.addEventListener("DOMContentLoaded", function () {
     }, 4000);
   }
 
-  function escapeCSV(value) {
-    return '"' + String(value ?? "").replace(/"/g, '""') + '"';
+  // ==========================================
+  // LOCALSTORAGE
+  // ==========================================
+
+  function loadCustomers() {
+    try {
+      const saved = JSON.parse(
+        localStorage.getItem(STORAGE_KEY) || "[]"
+      );
+
+      customers = Array.isArray(saved) ? saved : [];
+    } catch (error) {
+      customers = [];
+
+      showMessage(
+        "Unable to read saved records. Check browser storage.",
+        true
+      );
+
+      console.error("Customer loading error:", error);
+    }
   }
 
-  function generateId() {
-    return "CUS-" + Date.now().toString(36).toUpperCase() +
-      "-" + Math.random().toString(36).slice(2, 6).toUpperCase();
+  function saveCustomers() {
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(customers)
+      );
+
+      return true;
+    } catch (error) {
+      showMessage(
+        "Unable to save records. Browser storage may be full.",
+        true
+      );
+
+      console.error("Customer saving error:", error);
+      return false;
+    }
   }
+
+  // ==========================================
+  // CUSTOMER ID
+  // ==========================================
+
+  function generateId() {
+    return (
+      "CUS-" +
+      Date.now().toString(36).toUpperCase() +
+      "-" +
+      Math.random().toString(36).slice(2, 6).toUpperCase()
+    );
+  }
+
+  // ==========================================
+  // SEARCH AND FILTER
+  // ==========================================
 
   function getFilteredCustomers() {
     const query = searchInput.value.trim().toLowerCase();
     const filter = filterSelect.value;
 
     return customers.filter(function (customer) {
-      const matchesSearch = [
+      const searchableValues = [
         customer.id,
         customer.name,
         customer.phone,
         customer.email,
         customer.vehicleNumber,
         customer.address
-      ].some(function (value) {
+      ];
+
+      const matchesSearch = searchableValues.some(function (value) {
         return String(value || "").toLowerCase().includes(query);
       });
 
-      const hasPhone = Boolean(String(customer.phone || "").trim());
+      const hasPhone = Boolean(
+        String(customer.phone || "").trim()
+      );
 
       const matchesFilter =
         filter === "all" ||
@@ -90,22 +167,96 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // ==========================================
+  // TABLE HELPERS
+  // ==========================================
+
   function createCell(row, text) {
     const cell = document.createElement("td");
-    cell.textContent = text || "—";
+
+    cell.textContent =
+      text !== null && text !== undefined && text !== ""
+        ? String(text)
+        : "—";
+
     row.appendChild(cell);
+
     return cell;
   }
 
+  function createActionButton(label, className, handler) {
+    const button = document.createElement("button");
+
+    button.type = "button";
+    button.className = "small-btn " + className;
+    button.textContent = label;
+    button.addEventListener("click", handler);
+
+    return button;
+  }
+
+  // ==========================================
+  // CUSTOMER STATISTICS
+  // ==========================================
+
+  function updateStatistics() {
+    if ($("totalCustomers")) {
+      $("totalCustomers").textContent = customers.length;
+    }
+
+    if ($("customersWithPhone")) {
+      $("customersWithPhone").textContent =
+        customers.filter(function (customer) {
+          return Boolean(String(customer.phone || "").trim());
+        }).length;
+    }
+
+    if ($("newCustomers")) {
+      const now = new Date();
+
+      const newThisMonth = customers.filter(function (customer) {
+        if (!customer.createdAt) {
+          return false;
+        }
+
+        const date = new Date(
+          customer.createdAt + "T00:00:00"
+        );
+
+        return (
+          !Number.isNaN(date.getTime()) &&
+          date.getMonth() === now.getMonth() &&
+          date.getFullYear() === now.getFullYear()
+        );
+      }).length;
+
+      $("newCustomers").textContent = newThisMonth;
+    }
+  }
+
+  // ==========================================
+  // RENDER CUSTOMERS AND PAGINATION
+  // ==========================================
+
   function renderCustomers() {
     const filtered = getFilteredCustomers();
-    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
 
-    currentPage = Math.min(currentPage, totalPages);
-    currentPage = Math.max(currentPage, 1);
+    const totalPages = Math.max(
+      1,
+      Math.ceil(filtered.length / PAGE_SIZE)
+    );
+
+    currentPage = Math.max(
+      1,
+      Math.min(currentPage, totalPages)
+    );
 
     const startIndex = (currentPage - 1) * PAGE_SIZE;
-    const visible = filtered.slice(startIndex, startIndex + PAGE_SIZE);
+
+    const visible = filtered.slice(
+      startIndex,
+      startIndex + PAGE_SIZE
+    );
 
     tableBody.replaceChildren();
 
@@ -115,6 +266,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       cell.colSpan = 6;
       cell.className = "empty-state";
+
       cell.textContent = customers.length
         ? "No customers match your search."
         : "No customers registered yet. Click Add Customer to begin.";
@@ -127,44 +279,51 @@ document.addEventListener("DOMContentLoaded", function () {
 
         createCell(row, customer.id);
 
+        // Customer name and email.
         const detailsCell = document.createElement("td");
+
         const name = document.createElement("div");
         name.className = "customer-name";
-        name.textContent = customer.name;
+        name.textContent = customer.name || "—";
 
         detailsCell.appendChild(name);
 
         if (customer.email) {
           const email = document.createElement("div");
+
           email.className = "customer-email";
           email.textContent = customer.email;
+
           detailsCell.appendChild(email);
         }
 
         row.appendChild(detailsCell);
+
         createCell(row, customer.phone);
         createCell(row, customer.vehicleNumber);
         createCell(row, customer.createdAt);
 
+        // Edit and delete buttons.
         const actionsCell = document.createElement("td");
         const actions = document.createElement("div");
+
         actions.className = "action-buttons";
 
-        const editButton = document.createElement("button");
-        editButton.type = "button";
-        editButton.className = "small-btn edit-btn";
-        editButton.textContent = "Edit";
-        editButton.addEventListener("click", function () {
-          openEditModal(customer.id);
-        });
+        const editButton = createActionButton(
+          "Edit",
+          "edit-btn",
+          function () {
+            openEditModal(customer.id);
+          }
+        );
 
-        const deleteButton = document.createElement("button");
-        deleteButton.type = "button";
-        deleteButton.className = "small-btn delete-btn";
-        deleteButton.textContent = "Delete";
-        deleteButton.addEventListener("click", function () {
-          deleteCustomer(customer.id);
-        });
+        const deleteButton = createActionButton(
+          "Delete",
+          "delete-btn",
+          function () {
+            deleteCustomer(customer.id);
+          }
+        );
 
         actions.append(editButton, deleteButton);
         actionsCell.appendChild(actions);
@@ -174,80 +333,149 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     }
 
-    $("pageInfo").textContent = filtered.length
-      ? "Showing " + (startIndex + 1) + "–" +
-        Math.min(startIndex + PAGE_SIZE, filtered.length) +
-        " of " + filtered.length + " customers"
-      : "Showing 0 customers";
+    // Pagination information.
+    if ($("pageInfo")) {
+      $("pageInfo").textContent = filtered.length
+        ? "Showing " +
+          (startIndex + 1) +
+          "–" +
+          Math.min(startIndex + PAGE_SIZE, filtered.length) +
+          " of " +
+          filtered.length +
+          " customers"
+        : "Showing 0 customers";
+    }
 
-    $("pageNumber").textContent = currentPage + " / " + totalPages;
-    $("prevPage").disabled = currentPage <= 1;
-    $("nextPage").disabled = currentPage >= totalPages;
+    if ($("pageNumber")) {
+      $("pageNumber").textContent =
+        currentPage + " / " + totalPages;
+    }
 
-    $("totalCustomers").textContent = customers.length;
+    if ($("prevPage")) {
+      $("prevPage").disabled = currentPage <= 1;
+    }
 
-    $("customersWithPhone").textContent = customers.filter(function (c) {
-      return Boolean(String(c.phone || "").trim());
-    }).length;
+    if ($("nextPage")) {
+      $("nextPage").disabled = currentPage >= totalPages;
+    }
 
-    const now = new Date();
-    const newThisMonth = customers.filter(function (customer) {
-      if (!customer.createdAt) return false;
-      const date = new Date(customer.createdAt + "T00:00:00");
-      return !Number.isNaN(date.getTime()) &&
-        date.getMonth() === now.getMonth() &&
-        date.getFullYear() === now.getFullYear();
-    }).length;
-
-    $("newCustomers").textContent = newThisMonth;
+    updateStatistics();
   }
+
+  // ==========================================
+  // ADD CUSTOMER MODAL
+  // ==========================================
 
   function openAddModal() {
     form.reset();
-    $("editCustomerId").value = "";
-    $("modalTitle").textContent = "Add New Customer";
-    $("saveCustomerBtn").textContent = "Save Customer";
+
+    if ($("editCustomerId")) {
+      $("editCustomerId").value = "";
+    }
+
+    if ($("modalTitle")) {
+      $("modalTitle").textContent = "Add New Customer";
+    }
+
+    if ($("saveCustomerBtn")) {
+      $("saveCustomerBtn").textContent = "Save Customer";
+    }
+
     modal.hidden = false;
-    $("customerName").focus();
+
+    if ($("customerName")) {
+      $("customerName").focus();
+    }
   }
+
+  // ==========================================
+  // EDIT CUSTOMER MODAL
+  // ==========================================
 
   function openEditModal(id) {
     const customer = customers.find(function (item) {
       return item.id === id;
     });
 
-    if (!customer) return;
+    if (!customer) {
+      showMessage("Customer not found.", true);
+      return;
+    }
 
     form.reset();
-    $("editCustomerId").value = customer.id;
-    $("customerName").value = customer.name || "";
-    $("customerPhone").value = customer.phone || "";
-    $("customerEmail").value = customer.email || "";
-    $("vehicleNumber").value = customer.vehicleNumber || "";
-    $("customerAddress").value = customer.address || "";
 
-    $("modalTitle").textContent = "Edit Customer";
-    $("saveCustomerBtn").textContent = "Update Customer";
+    if ($("editCustomerId")) {
+      $("editCustomerId").value = customer.id;
+    }
+
+    if ($("customerName")) {
+      $("customerName").value = customer.name || "";
+    }
+
+    if ($("customerPhone")) {
+      $("customerPhone").value = customer.phone || "";
+    }
+
+    if ($("customerEmail")) {
+      $("customerEmail").value = customer.email || "";
+    }
+
+    if ($("vehicleNumber")) {
+      $("vehicleNumber").value = customer.vehicleNumber || "";
+    }
+
+    if ($("customerAddress")) {
+      $("customerAddress").value = customer.address || "";
+    }
+
+    if ($("modalTitle")) {
+      $("modalTitle").textContent = "Edit Customer";
+    }
+
+    if ($("saveCustomerBtn")) {
+      $("saveCustomerBtn").textContent = "Update Customer";
+    }
+
     modal.hidden = false;
-    $("customerName").focus();
+
+    if ($("customerName")) {
+      $("customerName").focus();
+    }
   }
+
+  // ==========================================
+  // CLOSE MODAL
+  // ==========================================
 
   function closeModal() {
     modal.hidden = true;
     form.reset();
-    $("editCustomerId").value = "";
+
+    if ($("editCustomerId")) {
+      $("editCustomerId").value = "";
+    }
   }
+
+  // ==========================================
+  // DELETE CUSTOMER
+  // ==========================================
 
   function deleteCustomer(id) {
     const customer = customers.find(function (item) {
       return item.id === id;
     });
 
-    if (!customer) return;
+    if (!customer) {
+      showMessage("Customer not found.", true);
+      return;
+    }
 
-    if (!confirm("Delete customer " + customer.name + "?")) return;
+    if (!confirm("Delete customer " + customer.name + "?")) {
+      return;
+    }
 
     const original = customers;
+
     customers = customers.filter(function (item) {
       return item.id !== id;
     });
@@ -261,47 +489,91 @@ document.addEventListener("DOMContentLoaded", function () {
     showMessage("Customer deleted successfully.");
   }
 
+  // ==========================================
+  // ADD AND UPDATE CUSTOMER
+  // ==========================================
+
   form.addEventListener("submit", function (event) {
     event.preventDefault();
 
-    const id = $("editCustomerId").value;
-    const name = $("customerName").value.trim();
-    const phone = $("customerPhone").value.trim();
-    const email = $("customerEmail").value.trim();
-    const vehicleNumber = $("vehicleNumber").value.trim().toUpperCase();
-    const address = $("customerAddress").value.trim();
+    const id = $("editCustomerId")
+      ? $("editCustomerId").value
+      : "";
 
+    const name = $("customerName")
+      ? $("customerName").value.trim()
+      : "";
+
+    const phone = $("customerPhone")
+      ? $("customerPhone").value.trim()
+      : "";
+
+    const email = $("customerEmail")
+      ? $("customerEmail").value.trim()
+      : "";
+
+    const vehicleNumber = $("vehicleNumber")
+      ? $("vehicleNumber").value.trim().toUpperCase()
+      : "";
+
+    const address = $("customerAddress")
+      ? $("customerAddress").value.trim()
+      : "";
+
+    // Required fields.
     if (!name || !phone || !vehicleNumber) {
-      showMessage("Please complete all required fields.", true);
+      showMessage(
+        "Please complete all required fields.",
+        true
+      );
       return;
     }
 
+    // Indian mobile number validation.
     if (!/^[6-9]\d{9}$/.test(phone)) {
-      showMessage("Enter a valid 10-digit Indian mobile number.", true);
+      showMessage(
+        "Enter a valid 10-digit Indian mobile number.",
+        true
+      );
       return;
     }
 
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    // Email validation.
+    if (
+      email &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    ) {
       showMessage("Enter a valid email address.", true);
       return;
     }
 
+    // Duplicate phone validation.
     const duplicatePhone = customers.some(function (customer) {
       return customer.phone === phone && customer.id !== id;
     });
 
     if (duplicatePhone) {
-      showMessage("This phone number is already registered.", true);
+      showMessage(
+        "This phone number is already registered.",
+        true
+      );
       return;
     }
 
+    // Duplicate vehicle validation.
     const duplicateVehicle = customers.some(function (customer) {
-      return String(customer.vehicleNumber || "").toUpperCase() === vehicleNumber &&
-        customer.id !== id;
+      return (
+        String(customer.vehicleNumber || "").toUpperCase() ===
+          vehicleNumber &&
+        customer.id !== id
+      );
     });
 
     if (duplicateVehicle) {
-      showMessage("This vehicle number is already registered.", true);
+      showMessage(
+        "This vehicle number is already registered.",
+        true
+      );
       return;
     }
 
@@ -337,24 +609,22 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     closeModal();
+
+    // Return to the first page after saving.
     currentPage = 1;
+
     renderCustomers();
-    showMessage(existing
-      ? "Customer updated successfully."
-      : "Customer added successfully.");
+
+    showMessage(
+      existing
+        ? "Customer updated successfully."
+        : "Customer added successfully."
+    );
   });
 
-  $("addCustomerBtn").addEventListener("click", openAddModal);
-  $("closeModalBtn").addEventListener("click", closeModal);
-  $("cancelBtn").addEventListener("click", closeModal);
-
-  modal.addEventListener("click", function (event) {
-    if (event.target === modal) closeModal();
-  });
-
-  document.addEventListener("keydown", function (event) {
-    if (event.key === "Escape" && !modal.hidden) closeModal();
-  });
+  // ==========================================
+  // SEARCH AND FILTER EVENTS
+  // ==========================================
 
   searchInput.addEventListener("input", function () {
     currentPage = 1;
@@ -366,16 +636,21 @@ document.addEventListener("DOMContentLoaded", function () {
     renderCustomers();
   });
 
-  $("prevPage").addEventListener("click", function () {
+  // ==========================================
+  // PAGINATION EVENTS
+  // ==========================================
+
+  on("prevPage", "click", function () {
     if (currentPage > 1) {
       currentPage--;
       renderCustomers();
     }
   });
 
-  $("nextPage").addEventListener("click", function () {
+  on("nextPage", "click", function () {
     const totalPages = Math.max(
-      1, Math.ceil(getFilteredCustomers().length / PAGE_SIZE)
+      1,
+      Math.ceil(getFilteredCustomers().length / PAGE_SIZE)
     );
 
     if (currentPage < totalPages) {
@@ -384,17 +659,41 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  $("exportBtn").addEventListener("click", function () {
+  // ==========================================
+  // CSV EXPORT
+  // Exports the filtered customer records.
+  // ==========================================
+
+  function escapeCSV(value) {
+    let text = String(value ?? "");
+
+    // Prevent spreadsheet formula execution.
+    if (/^[\s]*[=+\-@]/.test(text)) {
+      text = "'" + text;
+    }
+
+    return '"' + text.replace(/"/g, '""') + '"';
+  }
+
+  on("exportBtn", "click", function () {
     const records = getFilteredCustomers();
 
     if (!records.length) {
-      showMessage("There are no customers to export.", true);
+      showMessage(
+        "There are no customers to export.",
+        true
+      );
       return;
     }
 
     const headers = [
-      "Customer ID", "Full Name", "Phone", "Email",
-      "Vehicle Number", "Address", "Registered Date"
+      "Customer ID",
+      "Full Name",
+      "Phone",
+      "Email",
+      "Vehicle Number",
+      "Address",
+      "Registered Date"
     ];
 
     const rows = records.map(function (customer) {
@@ -415,47 +714,110 @@ document.addEventListener("DOMContentLoaded", function () {
       })
       .join("\r\n");
 
-    const blob = new Blob(["\uFEFF" + csv], {
-      type: "text/csv;charset=utf-8;"
-    });
+    const blob = new Blob(
+      ["\uFEFF" + csv],
+      { type: "text/csv;charset=utf-8;" }
+    );
 
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
 
     link.href = url;
     link.download = "popoye-customers.csv";
+
     document.body.appendChild(link);
     link.click();
     link.remove();
-    URL.revokeObjectURL(url);
+
+    // Release the temporary download URL after the click.
+    setTimeout(function () {
+      URL.revokeObjectURL(url);
+    }, 1000);
 
     showMessage("Customer CSV exported successfully.");
   });
 
-  // Shared demo theme and navigation.
-  if (localStorage.getItem("popoyeTheme") === "dark") {
-    document.body.classList.add("dark-mode");
+  // ==========================================
+  // MODAL EVENTS
+  // ==========================================
+
+  on("addCustomerBtn", "click", openAddModal);
+  on("closeModalBtn", "click", closeModal);
+  on("cancelBtn", "click", closeModal);
+
+  modal.addEventListener("click", function (event) {
+    if (event.target === modal) {
+      closeModal();
+    }
+  });
+
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && !modal.hidden) {
+      closeModal();
+    }
+  });
+
+  // ==========================================
+  // DARK MODE
+  // Shares the theme key with other pages.
+  // ==========================================
+
+  function applySavedTheme() {
+    const savedTheme = localStorage.getItem(THEME_KEY);
+
+    document.body.classList.toggle(
+      "dark-mode",
+      savedTheme === "dark"
+    );
   }
 
-  $("themeToggle").addEventListener("click", function () {
-    document.body.classList.toggle("dark-mode");
+  applySavedTheme();
 
-    localStorage.setItem(
-      "popoyeTheme",
-      document.body.classList.contains("dark-mode") ? "dark" : "light"
-    );
+  on("themeToggle", "click", function () {
+    const isDark = document.body.classList.toggle("dark-mode");
+
+    try {
+      localStorage.setItem(
+        THEME_KEY,
+        isDark ? "dark" : "light"
+      );
+    } catch (error) {
+      console.error("Unable to save theme preference:", error);
+    }
   });
 
-  $("menuToggle").addEventListener("click", function () {
-    $("sidebar").classList.toggle("open");
+  // ==========================================
+  // MOBILE SIDEBAR
+  // ==========================================
+
+  on("menuToggle", "click", function () {
+    const sidebar = $("sidebar");
+
+    if (sidebar) {
+      sidebar.classList.toggle("open");
+    }
   });
 
-  $("logoutBtn").addEventListener("click", function () {
+  // ==========================================
+  // LOGOUT
+  // ==========================================
+
+  on("logoutBtn", "click", function () {
     sessionStorage.removeItem("popoyeLoggedIn");
     window.location.replace("login.html");
   });
 
-  $("currentYear").textContent = new Date().getFullYear();
+  // ==========================================
+  // FOOTER YEAR
+  // ==========================================
+
+  if ($("currentYear")) {
+    $("currentYear").textContent = new Date().getFullYear();
+  }
+
+  // ==========================================
+  // INITIALIZE PAGE
+  // ==========================================
 
   loadCustomers();
   renderCustomers();
