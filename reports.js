@@ -1,558 +1,822 @@
 
 "use strict";
 
-document.addEventListener("DOMContentLoaded", () => {
-  // ==========================================
-  // POPOYE INSURANCE - REPORTS MODULE
-  // Reports use LocalStorage demo data
-  // ==========================================
+document.addEventListener("DOMContentLoaded", function () {
 
-  const KEYS = {
-    customers: "popoyeCustomers",
-    policies: "popoyePolicies",
-    payments: "popoyePayments",
-    login: "popoyeLoggedIn"
-  };
+    // ================================================
+    // POPOYE INSURANCE - REPORTS & ANALYTICS
+    // ================================================
 
-  if (localStorage.getItem(KEYS.login) !== "true") {
-    window.location.href = "login.html";
-    return;
-  }
+    const KEYS = {
+        customers: "popoyeCustomers",
+        policies: "popoyePolicies",
+        payments: "popoyePayments",
+        transactions: "popoyeTransactions",
+        reminders: "popoyeReminders"
+    };
 
-  const $ = (id) => document.getElementById(id);
+    const $ = id => document.getElementById(id);
 
-  const COLORS = {
-    navy: "#142B4A",
-    teal: "#0D9488",
-    grey: "#94A3B8",
-    amber: "#D97706",
-    red: "#DC2626",
-    grid: "#E3EAF2",
-    text: "#718096"
-  };
+    // ================================================
+    // LOCAL STORAGE
+    // ================================================
 
-  function readArray(key) {
-    try {
-      const value = JSON.parse(localStorage.getItem(key) || "[]");
-      return Array.isArray(value) ? value : [];
-    } catch (error) {
-      console.error("Unable to read " + key, error);
-      return [];
-    }
-  }
-
-  function money(value) {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 2
-    }).format(Number(value) || 0);
-  }
-
-  function escapeHTML(value) {
-    return String(value ?? "").replace(/[&<>"']/g, (character) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    })[character]);
-  }
-
-  function localDateString(date = new Date()) {
-    const local = new Date(
-      date.getTime() - date.getTimezoneOffset() * 60000
-    );
-    return local.toISOString().slice(0, 10);
-  }
-
-  function getRange() {
-    const period = $("reportPeriod").value;
-    const today = new Date();
-    const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-
-    if (period === "month") {
-      return {
-        start: localDateString(new Date(today.getFullYear(), today.getMonth(), 1)),
-        end: localDateString(today)
-      };
+    function readData(key) {
+        try {
+            const data = JSON.parse(localStorage.getItem(key) || "[]");
+            return Array.isArray(data) ? data : [];
+        } catch (error) {
+            console.error("Unable to read " + key, error);
+            return [];
+        }
     }
 
-    if (period === "last30") {
-      const from = new Date(start);
-      from.setDate(from.getDate() - 29);
-      return {
-        start: localDateString(from),
-        end: localDateString(today)
-      };
+    function getAllData() {
+        return {
+            customers: readData(KEYS.customers),
+            policies: readData(KEYS.policies),
+            payments: readData(KEYS.payments),
+            transactions: readData(KEYS.transactions),
+            reminders: readData(KEYS.reminders)
+        };
     }
 
-    if (period === "year") {
-      return {
-        start: localDateString(new Date(today.getFullYear(), 0, 1)),
-        end: localDateString(today)
-      };
+    // ================================================
+    // HELPERS
+    // ================================================
+
+    function value(object, fields, fallback = "") {
+        for (const field of fields) {
+            if (
+                object &&
+                object[field] !== undefined &&
+                object[field] !== null &&
+                object[field] !== ""
+            ) {
+                return object[field];
+            }
+        }
+        return fallback;
     }
 
-    return { start: "", end: "" };
-  }
-
-  function isInRange(dateValue, range) {
-    if (!range.start && !range.end) return true;
-    if (!dateValue) return false;
-
-    const date = String(dateValue).slice(0, 10);
-
-    return (!range.start || date >= range.start) &&
-      (!range.end || date <= range.end);
-  }
-
-  function getData() {
-    const range = getRange();
-    const allCustomers = readArray(KEYS.customers);
-    const allPolicies = readArray(KEYS.policies);
-    const allPayments = readArray(KEYS.payments);
-
-    const customers = allCustomers.filter((customer) =>
-      isInRange(customer.createdAt || customer.updatedAt, range)
-    );
-
-    const policies = allPolicies.filter((policy) =>
-      isInRange(
-        policy.createdAt || policy.startDate || policy.updatedAt,
-        range
-      )
-    );
-
-    const payments = allPayments.filter((payment) =>
-      isInRange(payment.date || payment.createdAt, range)
-    );
-
-    return { customers, policies, payments };
-  }
-
-  function getPolicyStatus(policy) {
-    if (policy.status === "Pending") return "Pending";
-
-    if (!policy.expiryDate) {
-      return policy.status || "Unknown";
+    function clean(input) {
+        return String(input ?? "").trim();
     }
 
-    const today = localDateString();
-    const expiry = String(policy.expiryDate).slice(0, 10);
-
-    if (expiry < today) return "Expired";
-
-    const expiryDate = new Date(expiry + "T00:00:00");
-    const todayDate = new Date(today + "T00:00:00");
-    const daysLeft = Math.round(
-      (expiryDate - todayDate) / (1000 * 60 * 60 * 24)
-    );
-
-    if (daysLeft <= 30) return "Expiring";
-    return "Active";
-  }
-
-  function drawBarChart(canvasId, legendId, labels, values, colors) {
-    const canvas = $(canvasId);
-    const context = canvas.getContext("2d");
-    const container = canvas.parentElement;
-    const width = Math.max(container.clientWidth, 240);
-    const height = Math.max(container.clientHeight, 200);
-    const ratio = window.devicePixelRatio || 1;
-
-    canvas.width = Math.round(width * ratio);
-    canvas.height = Math.round(height * ratio);
-    canvas.style.width = width + "px";
-    canvas.style.height = height + "px";
-
-    context.setTransform(ratio, 0, 0, ratio, 0, 0);
-    context.clearRect(0, 0, width, height);
-
-    const padding = { top: 22, right: 18, bottom: 48, left: 38 };
-    const chartWidth = width - padding.left - padding.right;
-    const chartHeight = height - padding.top - padding.bottom;
-    const maxValue = Math.max(...values, 1);
-    const step = Math.max(1, Math.ceil(maxValue / 4));
-    const maxAxis = step * 4;
-
-    context.font = "11px Arial";
-    context.textAlign = "right";
-    context.textBaseline = "middle";
-    context.fillStyle = COLORS.text;
-    context.strokeStyle = COLORS.grid;
-    context.lineWidth = 1;
-
-    for (let tick = 0; tick <= maxAxis; tick += step) {
-      const y = padding.top + chartHeight -
-        (tick / maxAxis) * chartHeight;
-
-      context.beginPath();
-      context.moveTo(padding.left, y);
-      context.lineTo(width - padding.right, y);
-      context.stroke();
-
-      context.fillText(String(tick), padding.left - 8, y);
+    function amount(input) {
+        const number = Number(String(input ?? 0).replace(/[₹,\s]/g, ""));
+        return Number.isFinite(number) ? number : 0;
     }
 
-    const groupWidth = chartWidth / labels.length;
-    const barWidth = Math.min(52, groupWidth * 0.55);
+    function formatDate(input) {
+        if (!input) return "";
 
-    labels.forEach((label, index) => {
-      const barHeight = (values[index] / maxAxis) * chartHeight;
-      const x = padding.left +
-        groupWidth * index +
-        (groupWidth - barWidth) / 2;
-      const y = padding.top + chartHeight - barHeight;
+        const date = new Date(input);
 
-      context.fillStyle = colors[index];
-      context.beginPath();
-      context.roundRect(x, y, barWidth, Math.max(barHeight, 1), 5);
-      context.fill();
+        return Number.isNaN(date.getTime())
+            ? String(input)
+            : date.toLocaleDateString("en-GB");
+    }
 
-      context.fillStyle = COLORS.navy;
-      context.textAlign = "center";
-      context.textBaseline = "bottom";
-      context.font = "bold 12px Arial";
-      context.fillText(String(values[index]), x + barWidth / 2, y - 5);
+    function formatCurrency(input) {
+        return new Intl.NumberFormat("en-IN", {
+            style: "currency",
+            currency: "INR",
+            maximumFractionDigits: 2
+        }).format(input);
+    }
 
-      context.fillStyle = COLORS.text;
-      context.font = "11px Arial";
-      context.textBaseline = "top";
+    function customerId(customer) {
+        return clean(value(customer, ["id", "customerId", "customer_id"]));
+    }
 
-      const labelParts = label.split(" ");
-      if (labelParts.length > 1) {
-        context.fillText(
-          labelParts[0],
-          x + barWidth / 2,
-          padding.top + chartHeight + 10
+    function customerName(customer) {
+        return clean(value(customer, [
+            "name", "customerName", "fullName"
+        ], "Unknown Customer"));
+    }
+
+    function findCustomer(item, customers) {
+        const id = clean(value(item, ["customerId", "customer_id"]));
+
+        if (id) {
+            const found = customers.find(c => customerId(c) === id);
+            if (found) return found;
+        }
+
+        if (item.customer && typeof item.customer === "object") {
+            return item.customer;
+        }
+
+        return null;
+    }
+
+    function getCustomerName(item, customers) {
+        const direct = value(item, ["customerName", "customer_name"]);
+
+        if (direct) return clean(direct);
+
+        if (typeof item.customer === "string" && item.customer.trim()) {
+            return item.customer.trim();
+        }
+
+        const customer = findCustomer(item, customers);
+
+        return customer ? customerName(customer) : "Unknown Customer";
+    }
+
+    function getVehicle(item) {
+        return clean(value(item, [
+            "vehicleNumber",
+            "vehicleNo",
+            "vehicle_number",
+            "registrationNumber"
+        ]));
+    }
+
+    function getPolicyNumber(item) {
+        return clean(value(item, [
+            "policyNumber", "policyNo", "policyId", "id"
+        ]));
+    }
+
+    function getPremium(item) {
+        return amount(value(item, [
+            "premium", "premiumAmount", "amount", "totalPremium"
+        ], 0));
+    }
+
+    function getPaymentAmount(item) {
+        return amount(value(item, [
+            "amount",
+            "premiumAmount",
+            "premium",
+            "paidAmount",
+            "totalAmount"
+        ], 0));
+    }
+
+    function getPaymentStatus(item) {
+        return clean(value(item, ["status", "paymentStatus"], "Pending"))
+            .toLowerCase();
+    }
+
+    function isPaid(item) {
+        return [
+            "paid", "success", "successful", "completed", "captured"
+        ].includes(getPaymentStatus(item));
+    }
+
+    function isFailed(item) {
+        return [
+            "failed", "failure", "cancelled", "canceled", "rejected"
+        ].includes(getPaymentStatus(item));
+    }
+
+    function isPending(item) {
+        return !isPaid(item) && !isFailed(item);
+    }
+
+    function getPolicyStatus(policy) {
+        const status = clean(policy.status).toLowerCase();
+
+        if (status) {
+            return status.charAt(0).toUpperCase() + status.slice(1);
+        }
+
+        const rawExpiry = value(policy, ["expiryDate", "endDate"]);
+
+        if (rawExpiry) {
+            const expiry = new Date(rawExpiry);
+
+            if (!Number.isNaN(expiry.getTime())) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                expiry.setHours(0, 0, 0, 0);
+
+                if (expiry < today) return "Expired";
+            }
+        }
+
+        return "Active";
+    }
+
+    function escapeHTML(input) {
+        return String(input ?? "").replace(/[&<>"']/g, character => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        })[character]);
+    }
+
+    // ================================================
+    // REPORT PERIOD FILTER
+    // ================================================
+
+    function getPeriod() {
+        return $("reportPeriod")?.value || "all";
+    }
+
+    function getRecordDate(item) {
+        return value(item, [
+            "date",
+            "createdAt",
+            "createdDate",
+            "paymentDate",
+            "transactionDate",
+            "startDate",
+            "issuedDate"
+        ]);
+    }
+
+    function matchesPeriod(item) {
+        const period = getPeriod();
+
+        if (period === "all") return true;
+
+        const rawDate = getRecordDate(item);
+        if (!rawDate) return false;
+
+        const date = new Date(rawDate);
+        if (Number.isNaN(date.getTime())) return false;
+
+        const now = new Date();
+
+        if (period === "month") {
+            return date.getMonth() === now.getMonth() &&
+                date.getFullYear() === now.getFullYear() &&
+                date <= now;
+        }
+
+        if (period === "last30") {
+            const start = new Date(now);
+            start.setDate(start.getDate() - 30);
+            start.setHours(0, 0, 0, 0);
+
+            return date >= start && date <= now;
+        }
+
+        if (period === "year") {
+            return date.getFullYear() === now.getFullYear() &&
+                date <= now;
+        }
+
+        return true;
+    }
+
+    function getFilteredData() {
+        const data = getAllData();
+
+        return {
+            ...data,
+            customers: data.customers.filter(matchesPeriod),
+            policies: data.policies.filter(matchesPeriod),
+            payments: data.payments.filter(matchesPeriod),
+            transactions: data.transactions.filter(matchesPeriod),
+            reminders: data.reminders.filter(matchesPeriod)
+        };
+    }
+
+    // ================================================
+    // BUILD REPORT TABLE
+    // ================================================
+
+    function buildReport(data) {
+        const type = $("reportType")?.value || "overview";
+
+        let headers = [];
+        let rows = [];
+        let filename = "popoye-business-report.csv";
+
+        if (type === "customers") {
+            headers = [
+                "Customer ID", "Customer Name", "Phone", "Email",
+                "Vehicle Number", "Address", "Created Date"
+            ];
+
+            rows = data.customers.map(customer => [
+                customerId(customer),
+                customerName(customer),
+                value(customer, ["phone", "mobile", "phoneNumber"]),
+                value(customer, ["email"]),
+                getVehicle(customer),
+                value(customer, ["address"]),
+                formatDate(getRecordDate(customer))
+            ]);
+
+            filename = "popoye-customer-report.csv";
+
+        } else if (type === "policies") {
+            headers = [
+                "Policy Number", "Customer Name", "Vehicle Number",
+                "Policy Type", "Start Date", "Expiry Date",
+                "Premium (INR)", "Status"
+            ];
+
+            rows = data.policies.map(policy => [
+                getPolicyNumber(policy),
+                getCustomerName(policy, data.customers),
+                getVehicle(policy),
+                value(policy, ["policyType", "insuranceType", "type"]),
+                formatDate(value(policy, ["startDate", "issuedDate"])),
+                formatDate(value(policy, ["expiryDate", "endDate"])),
+                getPremium(policy),
+                getPolicyStatus(policy)
+            ]);
+
+            filename = "popoye-policy-report.csv";
+
+        } else if (type === "payments") {
+            headers = [
+                "Payment Reference", "Customer Name", "Vehicle Number",
+                "Payment Method", "Payment Date", "Amount (INR)", "Status"
+            ];
+
+            rows = data.payments.map(payment => [
+                value(payment, ["referenceId", "transactionId", "paymentId", "id"]),
+                getCustomerName(payment, data.customers),
+                getVehicle(payment),
+                value(payment, ["method", "paymentMethod", "mode"]),
+                formatDate(getRecordDate(payment)),
+                getPaymentAmount(payment),
+                value(payment, ["status", "paymentStatus"], "Pending")
+            ]);
+
+            filename = "popoye-payment-report.csv";
+
+        } else if (type === "transactions") {
+            headers = [
+                "Transaction ID", "Customer Name", "Payment Method",
+                "Transaction Date", "Amount (INR)", "Status"
+            ];
+
+            const transactions = data.transactions.length
+                ? data.transactions
+                : data.payments;
+
+            rows = transactions.map(transaction => [
+                value(transaction, ["transactionId", "referenceId", "paymentId", "id"]),
+                getCustomerName(transaction, data.customers),
+                value(transaction, ["method", "paymentMethod", "mode"]),
+                formatDate(getRecordDate(transaction)),
+                getPaymentAmount(transaction),
+                value(transaction, ["status", "paymentStatus"], "Pending")
+            ]);
+
+            filename = "popoye-transaction-report.csv";
+
+        } else if (type === "reminders") {
+            headers = [
+                "Customer Name", "Phone", "Vehicle Number", "Policy Number",
+                "Expiry Date", "Premium (INR)", "Reminder Status"
+            ];
+
+            rows = data.reminders.map(reminder => [
+                getCustomerName(reminder, data.customers),
+                value(reminder, ["phone", "mobile"]),
+                getVehicle(reminder),
+                value(reminder, ["policyNumber", "policyNo"]),
+                formatDate(value(reminder, ["expiryDate", "policyExpiryDate"])),
+                amount(value(reminder, ["premium", "premiumAmount"], 0)),
+                value(reminder, ["status", "reminderStatus"], "Scheduled")
+            ]);
+
+            filename = "popoye-reminder-report.csv";
+
+        } else {
+            headers = ["Category", "Record Count", "Amount (INR)", "Details"];
+
+            const collected = data.payments
+                .filter(isPaid)
+                .reduce((sum, payment) => sum + getPaymentAmount(payment), 0);
+
+            const pendingAmount = data.payments
+                .filter(isPending)
+                .reduce((sum, payment) => sum + getPaymentAmount(payment), 0);
+
+            const failedAmount = data.payments
+                .filter(isFailed)
+                .reduce((sum, payment) => sum + getPaymentAmount(payment), 0);
+
+            rows = [
+                ["Customers", data.customers.length, 0, "Customer records"],
+                ["Policies", data.policies.length, 0, "Policy records"],
+                [
+                    "Active Policies",
+                    data.policies.filter(p =>
+                        getPolicyStatus(p).toLowerCase() === "active"
+                    ).length,
+                    0,
+                    "Policies currently active"
+                ],
+                [
+                    "Expired Policies",
+                    data.policies.filter(p =>
+                        getPolicyStatus(p).toLowerCase() === "expired"
+                    ).length,
+                    0,
+                    "Policies that have expired"
+                ],
+                [
+                    "Paid Payments",
+                    data.payments.filter(isPaid).length,
+                    collected,
+                    "Successfully recorded payments"
+                ],
+                [
+                    "Pending Payments",
+                    data.payments.filter(isPending).length,
+                    pendingAmount,
+                    "Awaiting payment confirmation"
+                ],
+                [
+                    "Failed Payments",
+                    data.payments.filter(isFailed).length,
+                    failedAmount,
+                    "Failed or cancelled payments"
+                ]
+            ];
+        }
+
+        return { headers, rows, filename, type };
+    }
+
+    // ================================================
+    // CSV EXPORT - EXCEL FRIENDLY
+    // ================================================
+
+    function exportReport() {
+        const data = getFilteredData();
+        const report = buildReport(data);
+
+        function csvCell(input) {
+            let result = String(input ?? "");
+
+            // Prevent spreadsheet formula injection.
+            if (/^[\t\r\n ]*[=+\-@]/.test(result)) {
+                result = "'" + result;
+            }
+
+            return '"' + result.replace(/"/g, '""') + '"';
+        }
+
+        const csvContent = [
+            report.headers,
+            ...report.rows
+        ].map(row =>
+            report.headers.map((_, index) =>
+                csvCell(row[index])
+            ).join(",")
+        ).join("\r\n");
+
+        const blob = new Blob(
+            ["\uFEFF" + csvContent],
+            { type: "text/csv;charset=utf-8;" }
         );
-        context.fillText(
-          labelParts.slice(1).join(" "),
-          x + barWidth / 2,
-          padding.top + chartHeight + 23
-        );
-      } else {
-        context.fillText(
-          label,
-          x + barWidth / 2,
-          padding.top + chartHeight + 10
-        );
-      }
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download = report.filename;
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+        if ($("reportMessage")) {
+            $("reportMessage").textContent =
+                "CSV downloaded successfully: " + report.filename;
+        }
+    }
+
+    // ================================================
+    // SUMMARY CARDS
+    // ================================================
+
+    function updateSummary(data) {
+        const collected = data.payments
+            .filter(isPaid)
+            .reduce((sum, payment) => sum + getPaymentAmount(payment), 0);
+
+        const pending = data.payments
+            .filter(isPending)
+            .reduce((sum, payment) => sum + getPaymentAmount(payment), 0);
+
+        if ($("reportCustomers")) {
+            $("reportCustomers").textContent = data.customers.length;
+        }
+
+        if ($("reportPolicies")) {
+            $("reportPolicies").textContent = data.policies.length;
+        }
+
+        if ($("reportCollected")) {
+            $("reportCollected").textContent = formatCurrency(collected);
+        }
+
+        if ($("reportPendingAmount")) {
+            $("reportPendingAmount").textContent = formatCurrency(pending);
+        }
+    }
+
+    // ================================================
+    // REPORT TABLE
+    // ================================================
+
+    function updateTable(data) {
+        const report = buildReport(data);
+        const head = $("reportTableHead");
+        const body = $("reportTableBody");
+
+        if (!head || !body) return;
+
+        head.innerHTML = "<tr>" + report.headers
+            .map(header => "<th>" + escapeHTML(header) + "</th>")
+            .join("") + "</tr>";
+
+        if (!report.rows.length) {
+            body.innerHTML = `
+                <tr>
+                    <td colspan="${report.headers.length}">
+                        No records found for the selected report period.
+                    </td>
+                </tr>
+            `;
+        } else {
+            body.innerHTML = report.rows.map(row =>
+                "<tr>" + report.headers.map((_, index) =>
+                    "<td>" + escapeHTML(row[index] ?? "") + "</td>"
+                ).join("") + "</tr>"
+            ).join("");
+        }
+
+        if ($("reportTableTitle")) {
+            const title = report.type.charAt(0).toUpperCase() +
+                report.type.slice(1);
+
+            $("reportTableTitle").textContent =
+                title === "Overview" ? "Business Overview" : title + " Report";
+        }
+
+        if ($("reportTableDescription")) {
+            $("reportTableDescription").textContent =
+                report.rows.length + " record(s) in the selected report.";
+        }
+
+        if ($("reportMessage")) {
+            $("reportMessage").textContent =
+                report.rows.length + " record(s) displayed.";
+        }
+    }
+
+    // ================================================
+    // CANVAS CHARTS
+    // ================================================
+
+    function updateCharts(data) {
+        const active = data.policies.filter(
+            p => getPolicyStatus(p).toLowerCase() === "active"
+        ).length;
+
+        const expired = data.policies.filter(
+            p => getPolicyStatus(p).toLowerCase() === "expired"
+        ).length;
+
+        const pendingPolicies = data.policies.filter(
+            p => getPolicyStatus(p).toLowerCase() === "pending"
+        ).length;
+
+        const paid = data.payments.filter(isPaid).length;
+        const pending = data.payments.filter(isPending).length;
+        const failed = data.payments.filter(isFailed).length;
+
+        drawCanvasChart("policyChart", [
+            { label: "Active", count: active, color: "#0D9488" },
+            { label: "Expired", count: expired, color: "#E05252" },
+            { label: "Pending", count: pendingPolicies, color: "#E5A000" }
+        ]);
+
+        drawCanvasChart("paymentChart", [
+            { label: "Paid", count: paid, color: "#0D9488" },
+            { label: "Pending", count: pending, color: "#E5A000" },
+            { label: "Failed", count: failed, color: "#E05252" }
+        ]);
+
+        if ($("policyLegend")) {
+            $("policyLegend").textContent =
+                `Active: ${active} | Expired: ${expired} | Pending: ${pendingPolicies}`;
+        }
+
+        if ($("paymentLegend")) {
+            $("paymentLegend").textContent =
+                `Paid: ${paid} | Pending: ${pending} | Failed: ${failed}`;
+        }
+    }
+
+    function drawCanvasChart(canvasId, items) {
+        const canvas = $(canvasId);
+        if (!canvas) return;
+
+        const context = canvas.getContext("2d");
+        if (!context) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const cssWidth = Math.max(rect.width, 280);
+        const cssHeight = Math.max(rect.height, 220);
+        const pixelRatio = window.devicePixelRatio || 1;
+
+        canvas.width = Math.round(cssWidth * pixelRatio);
+        canvas.height = Math.round(cssHeight * pixelRatio);
+
+        context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+        context.clearRect(0, 0, cssWidth, cssHeight);
+
+        const width = cssWidth;
+        const height = cssHeight;
+
+        const padding = {
+            top: 24,
+            right: 18,
+            bottom: 42,
+            left: 36
+        };
+
+        const chartWidth = width - padding.left - padding.right;
+        const chartHeight = height - padding.top - padding.bottom;
+
+        const maxValue = Math.max(1, ...items.map(item => item.count));
+        const gridLines = 4;
+
+        context.font = "11px Arial";
+        context.textAlign = "right";
+        context.textBaseline = "middle";
+
+        // Background and horizontal grid lines.
+        for (let i = 0; i <= gridLines; i++) {
+            const y = padding.top + chartHeight * i / gridLines;
+            const label = Math.round(
+                maxValue * (gridLines - i) / gridLines
+            );
+
+            context.beginPath();
+            context.strokeStyle = "#E3EAF2";
+            context.lineWidth = 1;
+            context.moveTo(padding.left, y);
+            context.lineTo(width - padding.right, y);
+            context.stroke();
+
+            context.fillStyle = "#718096";
+            context.fillText(String(label), padding.left - 8, y);
+        }
+
+        const slotWidth = chartWidth / items.length;
+        const barWidth = Math.min(48, slotWidth * 0.52);
+
+        items.forEach((item, index) => {
+            const centerX = padding.left + slotWidth * (index + 0.5);
+            const barHeight = item.count === 0
+                ? 0
+                : Math.max(3, chartHeight * item.count / maxValue);
+
+            const x = centerX - barWidth / 2;
+            const y = padding.top + chartHeight - barHeight;
+
+            // Rounded bars.
+            if (barHeight > 0) {
+                const radius = Math.min(7, barWidth / 2, barHeight / 2);
+
+                context.beginPath();
+                context.moveTo(x, y + radius);
+                context.arcTo(x, y, x + radius, y, radius);
+                context.lineTo(x + barWidth - radius, y);
+                context.arcTo(
+                    x + barWidth, y,
+                    x + barWidth, y + radius,
+                    radius
+                );
+                context.lineTo(x + barWidth, y + barHeight);
+                context.lineTo(x, y + barHeight);
+                context.closePath();
+
+                context.fillStyle = item.color;
+                context.fill();
+            }
+
+            // Numeric value above each bar.
+            context.fillStyle = "#142B4A";
+            context.font = "bold 12px Arial";
+            context.textAlign = "center";
+            context.textBaseline = "bottom";
+
+            context.fillText(
+                String(item.count),
+                centerX,
+                Math.max(padding.top + 12, y - 7)
+            );
+
+            // Category label below each bar.
+            context.fillStyle = "#526579";
+            context.font = "11px Arial";
+            context.textAlign = "center";
+            context.textBaseline = "top";
+
+            context.fillText(
+                item.label,
+                centerX,
+                padding.top + chartHeight + 12,
+                Math.max(slotWidth - 4, 40)
+            );
+        });
+
+        // Show an empty-state message when no records exist.
+        if (items.every(item => item.count === 0)) {
+            context.fillStyle = "#718096";
+            context.font = "12px Arial";
+            context.textAlign = "center";
+            context.textBaseline = "middle";
+
+            context.fillText(
+                "No data available",
+                width / 2,
+                height / 2
+            );
+        }
+    }
+
+    // ================================================
+    // REFRESH REPORT
+    // ================================================
+
+    function refreshReport() {
+        const data = getFilteredData();
+
+        updateSummary(data);
+        updateCharts(data);
+        updateTable(data);
+    }
+
+    // ================================================
+    // SIDEBAR
+    // ================================================
+
+    if ($("menuToggle")) {
+        $("menuToggle").addEventListener("click", function () {
+            document.body.classList.toggle("sidebar-open");
+
+            const sidebar = $("sidebar") ||
+                document.querySelector(".sidebar");
+
+            if (sidebar) {
+                sidebar.classList.toggle("active");
+            }
+
+            // Recalculate chart dimensions after the layout changes.
+            setTimeout(() => {
+                updateCharts(getFilteredData());
+            }, 250);
+        });
+    }
+
+    // ================================================
+    // EVENT LISTENERS
+    // ================================================
+
+    if ($("refreshReport")) {
+        $("refreshReport").addEventListener("click", refreshReport);
+    }
+
+    if ($("reportPeriod")) {
+        $("reportPeriod").addEventListener("change", refreshReport);
+    }
+
+    if ($("reportType")) {
+        $("reportType").addEventListener("change", refreshReport);
+    }
+
+    if ($("exportReport")) {
+        $("exportReport").addEventListener("click", exportReport);
+    }
+
+    // Redraw charts when the browser window changes size.
+    let resizeTimer;
+
+    window.addEventListener("resize", function () {
+        clearTimeout(resizeTimer);
+
+        resizeTimer = setTimeout(function () {
+            updateCharts(getFilteredData());
+        }, 150);
     });
 
-    $(legendId).innerHTML = labels.map((label, index) => `
-      <span class="report-legend-item">
-        <span class="report-legend-dot"
-          style="background:${colors[index]}"></span>
-        ${escapeHTML(label)}: ${values[index]}
-      </span>
-    `).join("");
-  }
+    // ================================================
+    // INITIALIZE
+    // ================================================
 
-  function updateSummary(data) {
-    $("reportCustomers").textContent = data.customers.length;
-    $("reportPolicies").textContent = data.policies.length;
+    refreshReport();
 
-    const paid = data.payments.filter((payment) => payment.status === "Paid");
-    const pending = data.payments.filter(
-      (payment) => payment.status === "Pending"
-    );
-
-    $("reportCollected").textContent = money(
-      paid.reduce((sum, payment) => sum + Number(payment.amount || 0), 0)
-    );
-
-    $("reportPendingAmount").textContent = money(
-      pending.reduce((sum, payment) => sum + Number(payment.amount || 0), 0)
-    );
-  }
-
-  function renderOverview(data) {
-    const active = data.policies.filter(
-      (policy) => getPolicyStatus(policy) === "Active"
-    ).length;
-
-    const expiring = data.policies.filter(
-      (policy) => getPolicyStatus(policy) === "Expiring"
-    ).length;
-
-    const expired = data.policies.filter(
-      (policy) => getPolicyStatus(policy) === "Expired"
-    ).length;
-
-    const paid = data.payments.filter(
-      (payment) => payment.status === "Paid"
-    ).length;
-
-    const pending = data.payments.filter(
-      (payment) => payment.status === "Pending"
-    ).length;
-
-    const failed = data.payments.filter(
-      (payment) => payment.status === "Failed"
-    ).length;
-
-    drawBarChart(
-      "policyChart",
-      "policyLegend",
-      ["Active", "Expiring", "Expired"],
-      [active, expiring, expired],
-      [COLORS.teal, COLORS.amber, COLORS.red]
-    );
-
-    drawBarChart(
-      "paymentChart",
-      "paymentLegend",
-      ["Paid", "Pending", "Failed"],
-      [paid, pending, failed],
-      [COLORS.teal, COLORS.amber, COLORS.red]
-    );
-  }
-
-  function renderTable(title, description, headers, rows) {
-    $("reportTableTitle").textContent = title;
-    $("reportTableDescription").textContent = description;
-
-    $("reportTableHead").innerHTML = `
-      <tr>${headers.map((header) =>
-        `<th>${escapeHTML(header)}</th>`
-      ).join("")}</tr>`;
-
-    if (!rows.length) {
-      $("reportTableBody").innerHTML = `
-        <tr>
-          <td colspan="${headers.length}" class="report-empty">
-            No records found for the selected report period.
-          </td>
-        </tr>`;
-      return;
-    }
-
-    $("reportTableBody").innerHTML = rows.map((row) => `
-      <tr>${row.map((cell) =>
-        `<td>${escapeHTML(cell)}</td>`
-      ).join("")}</tr>
-    `).join("");
-  }
-
-  function renderSelectedReport(data) {
-    const type = $("reportType").value;
-
-    if (type === "customers") {
-      renderTable(
-        "Customer Report",
-        "Customer records matching the selected period.",
-        ["Customer Name", "Phone", "Email", "Vehicle Number", "Created"],
-        data.customers.map((customer) => [
-          customer.name || "—",
-          customer.phone || "—",
-          customer.email || "—",
-          customer.vehicleNumber || "—",
-          customer.createdAt
-            ? String(customer.createdAt).slice(0, 10)
-            : "—"
-        ])
-      );
-      return;
-    }
-
-    if (type === "policies") {
-      renderTable(
-        "Policy Report",
-        "Policy records matching the selected period.",
-        ["Policy Number", "Customer", "Vehicle Number", "Expiry Date",
-          "Premium", "Status"],
-        data.policies.map((policy) => [
-          policy.policyNumber || "—",
-          policy.customerName || "—",
-          policy.vehicleNumber || "—",
-          policy.expiryDate || "—",
-          money(policy.premium),
-          getPolicyStatus(policy)
-        ])
-      );
-      return;
-    }
-
-    if (type === "payments") {
-      renderTable(
-        "Payment Report",
-        "Payment records matching the selected period.",
-        ["Reference ID", "Customer", "Method", "Date", "Amount", "Status"],
-        data.payments.map((payment) => [
-          payment.id || "—",
-          payment.customerName || "—",
-          payment.method || "—",
-          payment.date || "—",
-          money(payment.amount),
-          payment.status || "Pending"
-        ])
-      );
-      return;
-    }
-
-    renderTable(
-      "Business Overview",
-      "Summary of your stored business records.",
-      ["Category", "Records", "Amount / Details"],
-      [
-        ["Customers", data.customers.length, "Customer records"],
-        ["Policies", data.policies.length, "Policy records"],
-        [
-          "Paid Payments",
-          data.payments.filter((payment) => payment.status === "Paid").length,
-          money(data.payments
-            .filter((payment) => payment.status === "Paid")
-            .reduce((sum, payment) => sum + Number(payment.amount || 0), 0))
-        ],
-        [
-          "Pending Payments",
-          data.payments.filter((payment) => payment.status === "Pending").length,
-          money(data.payments
-            .filter((payment) => payment.status === "Pending")
-            .reduce((sum, payment) => sum + Number(payment.amount || 0), 0))
-        ],
-        [
-          "Failed Payments",
-          data.payments.filter((payment) => payment.status === "Failed").length,
-          "Requires review"
-        ]
-      ]
-    );
-  }
-
-  function refreshReport() {
-    const data = getData();
-    updateSummary(data);
-    renderOverview(data);
-    renderSelectedReport(data);
-    $("reportMessage").textContent =
-      "Report refreshed: " + new Date().toLocaleString("en-IN");
-  }
-
-  function exportReport() {
-    const data = getData();
-    const type = $("reportType").value;
-    let headers;
-    let rows;
-    let filename;
-
-    if (type === "customers") {
-      headers = ["Customer Name", "Phone", "Email", "Vehicle Number", "Created"];
-      rows = data.customers.map((customer) => [
-        customer.name || "",
-        customer.phone || "",
-        customer.email || "",
-        customer.vehicleNumber || "",
-        customer.createdAt || ""
-      ]);
-      filename = "popoye-customer-report.csv";
-    } else if (type === "policies") {
-      headers = [
-        "Policy Number", "Customer", "Vehicle Number", "Expiry Date",
-        "Premium", "Status"
-      ];
-      rows = data.policies.map((policy) => [
-        policy.policyNumber || "",
-        policy.customerName || "",
-        policy.vehicleNumber || "",
-        policy.expiryDate || "",
-        policy.premium || 0,
-        getPolicyStatus(policy)
-      ]);
-      filename = "popoye-policy-report.csv";
-    } else if (type === "payments") {
-      headers = [
-        "Reference ID", "Customer", "Method", "Date", "Amount", "Status"
-      ];
-      rows = data.payments.map((payment) => [
-        payment.id || "",
-        payment.customerName || "",
-        payment.method || "",
-        payment.date || "",
-        payment.amount || 0,
-        payment.status || "Pending"
-      ]);
-      filename = "popoye-payment-report.csv";
-    } else {
-      headers = ["Category", "Records", "Amount / Details"];
-      rows = [
-        ["Customers", data.customers.length, "Customer records"],
-        ["Policies", data.policies.length, "Policy records"],
-        [
-          "Paid Payments",
-          data.payments.filter((payment) => payment.status === "Paid").length,
-          data.payments
-            .filter((payment) => payment.status === "Paid")
-            .reduce((sum, payment) => sum + Number(payment.amount || 0), 0)
-        ],
-        [
-          "Pending Payments",
-          data.payments.filter((payment) => payment.status === "Pending").length,
-          data.payments
-            .filter((payment) => payment.status === "Pending")
-            .reduce((sum, payment) => sum + Number(payment.amount || 0), 0)
-        ],
-        [
-          "Failed Payments",
-          data.payments.filter((payment) => payment.status === "Failed").length,
-          "Requires review"
-        ]
-      ];
-      filename = "popoye-business-report.csv";
-    }
-
-    if (!rows.length) {
-      $("reportMessage").textContent =
-        "No records are available to export for this report.";
-      return;
-    }
-
-    const csvValue = (value) =>
-      '"' + String(value ?? "").replace(/"/g, '""') + '"';
-
-    const csv = [headers, ...rows]
-      .map((row) => row.map(csvValue).join(","))
-      .join("\r\n");
-
-    const blob = new Blob(["\uFEFF" + csv], {
-      type: "text/csv;charset=utf-8;"
-    });
-
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-
-    $("reportMessage").textContent = "Report exported successfully.";
-  }
-
-  $("refreshReport").addEventListener("click", refreshReport);
-  $("reportPeriod").addEventListener("change", refreshReport);
-  $("reportType").addEventListener("change", refreshReport);
-  $("exportReport").addEventListener("click", exportReport);
-
-  $("menuToggle").addEventListener("click", () => {
-    $("sidebar").classList.toggle("sidebar-open");
-  });
-
-  $("logoutBtn").addEventListener("click", () => {
-    if (window.confirm("Are you sure you want to log out?")) {
-      localStorage.removeItem(KEYS.login);
-      window.location.href = "login.html";
-    }
-  });
-
-  let resizeTimer;
-  window.addEventListener("resize", () => {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(refreshReport, 150);
-  });
-
-  refreshReport();
 });

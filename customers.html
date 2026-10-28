@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="style.css">
     <script src="customers.js" defer></script>
 </head>
+
 <body class="app-body">
 <div class="app-layout">
 
@@ -27,24 +28,30 @@
             <a href="dashboard.html" class="nav-link">
                 <span class="nav-icon"></span> Dashboard
             </a>
-            <a href="customers.html" class="nav-link active" aria-current="page">
+
+            <a href="customers.html" class="nav-link active"
+               aria-current="page">
                 <span class="nav-icon"></span> Customers
             </a>
+
             <a href="policies.html" class="nav-link">
                 <span class="nav-icon"></span> Policies
             </a>
+
             <a href="payments.html" class="nav-link">
                 <span class="nav-icon"></span> Payments
             </a>
-            <a href="reports.html" class="nav-link">
-                <span class="nav-icon"></span> Reports
-            </a>
-            <a href="reminders.html" class="nav-link">
-                <span class="nav-icon"></span> Reminders
-            </a>
-            <a href="settings.html" class="nav-link">
-                <span class="nav-icon"></span> Settings
-            </a>
+
+                    <a href="reminders.html" class="nav-link">
+                    <span class="nav-icon"></span>
+                    Reminders
+                </a>
+
+                <a href="reports.html" class="nav-link">
+                    <span class="nav-icon"></span>
+                    Reports
+                </a>
+
         </nav>
 
         <div class="sidebar-bottom">
@@ -52,17 +59,16 @@
                 <strong>Popoye Insurance</strong>
                 <p>Two-wheeler insurance management</p>
             </div>
-            <button type="button" class="logout-btn" id="logoutBtn">
-                ↪ Log Out
-            </button>
         </div>
     </aside>
 
     <!-- MAIN CONTENT -->
     <main class="main-content">
+
         <header class="topbar">
             <button class="menu-toggle" id="menuToggle"
-                    type="button" aria-label="Toggle navigation"></button>
+                    type="button"
+                    aria-label="Toggle navigation"></button>
 
             <div class="topbar-heading">
                 <h2>Customers</h2>
@@ -79,18 +85,25 @@
         </header>
 
         <section class="page-container">
+
+            <!-- PAGE HEADER -->
             <div class="page-header">
                 <div>
                     <h1>Customer Management</h1>
-                    <p class="muted-text">Add, search, edit, and manage customer records.</p>
+                    <p class="muted-text">
+                        Add, search, edit, import, and manage customer records.
+                    </p>
                 </div>
-                <button type="button" class="primary-btn" id="addCustomerBtn">
+
+                <button type="button" class="primary-btn"
+                        id="addCustomerBtn">
                     + Add Customer
                 </button>
             </div>
 
             <!-- CUSTOMER SUMMARY -->
             <div class="stats-grid customer-stats">
+
                 <article class="stat-card">
                     <div class="stat-top">
                         <span>Total Customers</span>
@@ -122,16 +135,21 @@
                     <h2 id="filteredCustomerCount">0</h2>
                     <p>Matching current search and filter</p>
                 </article>
+
             </div>
 
-            <!-- ADD / EDIT FORM -->
-            <section class="card customer-form-card" id="customerFormCard" hidden>
+            <!-- ADD / EDIT CUSTOMER FORM -->
+            <section class="card customer-form-card"
+                     id="customerFormCard" hidden>
+
                 <div class="section-heading">
                     <div>
                         <h3 id="customerFormTitle">Add New Customer</h3>
                         <p>Enter the customer's contact and vehicle details.</p>
                     </div>
-                    <button type="button" class="secondary-btn" id="cancelCustomerBtn">
+
+                    <button type="button" class="secondary-btn"
+                            id="cancelCustomerBtn">
                         Cancel
                     </button>
                 </div>
@@ -140,46 +158,62 @@
                     <input type="hidden" id="customerId">
 
                     <div class="customer-form-grid">
+
                         <div class="form-group">
                             <label for="customerName">Full Name *</label>
-                            <input id="customerName" name="customerName"
-                                   type="text" maxlength="100" required
+                            <input id="customerName"
+                                   name="customerName"
+                                   type="text"
+                                   maxlength="100"
+                                   required
                                    placeholder="Enter full name">
                         </div>
 
                         <div class="form-group">
                             <label for="customerPhone">Phone Number *</label>
-                            <input id="customerPhone" name="customerPhone"
-                                   type="tel" inputmode="numeric"
-                                   pattern="[0-9]{10}" maxlength="10"
-                                   minlength="10" required
+                            <input id="customerPhone"
+                                   name="customerPhone"
+                                   type="tel"
+                                   inputmode="numeric"
+                                   pattern="[0-9]{10}"
+                                   maxlength="10"
+                                   minlength="10"
+                                   required
                                    placeholder="10-digit mobile number">
                         </div>
 
                         <div class="form-group">
                             <label for="customerEmail">Email Address</label>
-                            <input id="customerEmail" name="customerEmail"
-                                   type="email" maxlength="150"
+                            <input id="customerEmail"
+                                   name="customerEmail"
+                                   type="email"
+                                   maxlength="150"
                                    placeholder="customer@example.com">
                         </div>
 
                         <div class="form-group">
                             <label for="vehicleNumber">Vehicle Number *</label>
-                            <input id="vehicleNumber" name="vehicleNumber"
-                                   type="text" maxlength="20" required
+                            <input id="vehicleNumber"
+                                   name="vehicleNumber"
+                                   type="text"
+                                   maxlength="20"
+                                   required
                                    placeholder="e.g. TN 38 AB 1234">
                         </div>
 
                         <div class="form-group">
                             <label for="vehicleModel">Vehicle Model</label>
-                            <input id="vehicleModel" name="vehicleModel"
-                                   type="text" maxlength="100"
+                            <input id="vehicleModel"
+                                   name="vehicleModel"
+                                   type="text"
+                                   maxlength="100"
                                    placeholder="e.g. Honda Activa">
                         </div>
 
                         <div class="form-group">
                             <label for="customerStatus">Customer Status</label>
-                            <select id="customerStatus" name="customerStatus">
+                            <select id="customerStatus"
+                                    name="customerStatus">
                                 <option value="Active">Active</option>
                                 <option value="Inactive">Inactive</option>
                             </select>
@@ -187,38 +221,58 @@
 
                         <div class="form-group customer-address">
                             <label for="customerAddress">Address</label>
-                            <textarea id="customerAddress" name="customerAddress"
-                                      rows="3" maxlength="300"
+                            <textarea id="customerAddress"
+                                      name="customerAddress"
+                                      rows="3"
+                                      maxlength="300"
                                       placeholder="Enter customer address"></textarea>
                         </div>
+
                     </div>
 
                     <div class="customer-form-actions">
-                        <button type="submit" class="primary-btn" id="saveCustomerBtn">
+                        <button type="submit" class="primary-btn"
+                                id="saveCustomerBtn">
                             Save Customer
                         </button>
+
                         <button type="button" class="secondary-btn"
-                                id="resetCustomerBtn">Clear Form</button>
+                                id="resetCustomerBtn">
+                            Clear Form
+                        </button>
                     </div>
                 </form>
             </section>
 
             <!-- CUSTOMER TABLE -->
             <section class="card">
+
                 <div class="section-heading">
                     <div>
                         <h3>All Customers</h3>
-                        <p>Search and manage your registered customers.</p>
+                        <p>Search, import, and manage your registered customers.</p>
                     </div>
-                    <button type="button" class="secondary-btn" id="exportCustomersBtn">
-                        ↓ Export CSV
-                    </button>
+
+                    <!-- IMPORT CSV -->
+                    <div class="csv-import-group">
+
+                        <input
+                            type="file"
+                            id="importCustomersFile"
+                            accept=".csv,text/csv"
+                            hidden
+                        >
+
+                    </div>
                 </div>
 
+                <!-- SEARCH AND FILTERS -->
                 <div class="customer-toolbar">
+
                     <div class="form-group search-field">
                         <label for="customerSearch">Search Customers</label>
-                        <input type="search" id="customerSearch"
+                        <input type="search"
+                               id="customerSearch"
                                placeholder="Search name, phone, vehicle...">
                     </div>
 
@@ -239,11 +293,16 @@
                             <option value="20">20 rows</option>
                         </select>
                     </div>
+
                 </div>
 
-                <p id="customerMessage" class="customer-message"
-                   role="status" aria-live="polite"></p>
+                <!-- IMPORT STATUS / MESSAGES -->
+                <p id="customerMessage"
+                   class="customer-message"
+                   role="status"
+                   aria-live="polite"></p>
 
+                <!-- TABLE -->
                 <div class="table-wrap">
                     <table class="data-table customer-table">
                         <thead>
@@ -256,6 +315,7 @@
                                 <th>Actions</th>
                             </tr>
                         </thead>
+
                         <tbody id="customersTableBody">
                             <tr>
                                 <td colspan="6">Loading customers...</td>
@@ -264,21 +324,37 @@
                     </table>
                 </div>
 
+                <!-- PAGINATION -->
                 <div class="pagination-bar">
-                    <span id="customerPageInfo">Showing 0 customers</span>
+                    <span id="customerPageInfo">
+                        Showing 0 customers
+                    </span>
+
                     <div class="pagination-controls">
-                        <button type="button" class="secondary-btn"
-                                id="customerPrevBtn">Previous</button>
-                        <span id="customerPageNumber">Page 1 of 1</span>
-                        <button type="button" class="secondary-btn"
-                                id="customerNextBtn">Next</button>
+                        <button type="button"
+                                class="secondary-btn"
+                                id="customerPrevBtn">
+                            Previous
+                        </button>
+
+                        <span id="customerPageNumber">
+                            Page 1 of 1
+                        </span>
+
+                        <button type="button"
+                                class="secondary-btn"
+                                id="customerNextBtn">
+                            Next
+                        </button>
                     </div>
                 </div>
+
             </section>
 
             <footer class="app-footer">
                 © 2026 Popoye Insurance. All rights reserved.
             </footer>
+
         </section>
     </main>
 </div>

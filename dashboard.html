@@ -4,173 +4,270 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Dashboard | Popoye Insurance</title>
+
     <link rel="stylesheet" href="style.css">
     <script src="dashboard.js" defer></script>
 </head>
+
 <body class="app-body">
 
     <div class="app-layout">
 
         <!-- SIDEBAR -->
         <aside class="sidebar" id="sidebar">
+
+            <!-- BRAND LOGO -->
             <div class="sidebar-brand">
                 <img src="images/logo.png" alt="Popoye Insurance Logo">
+
                 <div>
                     <h2>Popoye</h2>
                     <span>INSURANCE</span>
                 </div>
             </div>
 
+            <!-- SIDEBAR MENU LABEL -->
             <div class="sidebar-label">MAIN MENU</div>
 
+            <!-- NAVIGATION -->
             <nav class="sidebar-nav" aria-label="Main navigation">
-                <a href="dashboard.html" class="nav-link active">
-                    <span class="nav-icon"></span> Dashboard
+
+                <a href="dashboard.html"
+                   class="nav-link active"
+                   aria-current="page">
+                    <span class="nav-icon"></span>
+                    Dashboard
                 </a>
+
                 <a href="customers.html" class="nav-link">
-                    <span class="nav-icon"></span> Customers
+                    <span class="nav-icon"></span>
+                    Customers
                 </a>
+
                 <a href="policies.html" class="nav-link">
-                    <span class="nav-icon"></span> Policies
+                    <span class="nav-icon"></span>
+                    Policies
                 </a>
+
                 <a href="payments.html" class="nav-link">
-                    <span class="nav-icon"></span> Payments
+                    <span class="nav-icon"></span>
+                    Payments
                 </a>
-                <a href="reports.html" class="nav-link">
-                    <span class="nav-icon"></span> Reports
-                </a>
+
                 <a href="reminders.html" class="nav-link">
-                    <span class="nav-icon"></span> Reminders
+                    <span class="nav-icon"></span>
+                    Reminders
                 </a>
-                <a href="settings.html" class="nav-link">
-                    <span class="nav-icon"></span> Settings
+
+                <a href="reports.html" class="nav-link">
+                    <span class="nav-icon"></span>
+                    Reports
                 </a>
+
             </nav>
 
+            <!-- SIDEBAR BOTTOM -->
             <div class="sidebar-bottom">
+
                 <div class="sidebar-help">
                     <strong>Popoye Insurance</strong>
                     <p>Two-wheeler insurance management</p>
                 </div>
-                <button type="button" class="logout-btn" id="logoutBtn">
-                    ↪ Log Out
-                </button>
+
             </div>
+
         </aside>
 
         <!-- MAIN CONTENT -->
         <main class="main-content">
 
+            <!-- TOP BAR -->
             <header class="topbar">
-                <button class="menu-toggle" id="menuToggle"
-                        type="button" aria-label="Toggle navigation">☰</button>
 
+                <!-- MOBILE MENU BUTTON -->
+                <button
+                    class="menu-toggle"
+                    id="menuToggle"
+                    type="button"
+                    aria-label="Toggle navigation">
+                    
+                </button>
+
+                <!-- PAGE TITLE -->
                 <div class="topbar-heading">
                     <h2>Dashboard</h2>
                     <p>Welcome back! Here's your business overview.</p>
                 </div>
 
+                <!-- ADMIN ACCOUNT AND LOGOUT -->
                 <div class="topbar-actions">
-                    <span class="admin-avatar">A</span>
-                    <div>
-                        <strong>Administrator</strong>
-                        <small>Admin Account</small>
-                    </div>
+
+                    <button
+                        type="button"
+                        class="logout-btn"
+                        id="logoutBtn">
+                         Log Out
+                    </button>
+
                 </div>
+
             </header>
 
+            <!-- PAGE CONTAINER -->
             <section class="page-container">
 
+                <!-- PAGE HEADER -->
                 <div class="page-header">
+
                     <div>
                         <h1>Business Overview</h1>
-                        <p class="muted-text">Monitor your insurance business at a glance.</p>
+                        <p class="muted-text">
+                            Monitor your insurance business at a glance.
+                        </p>
                     </div>
+
                     <span class="date-badge" id="currentDate"></span>
+
                 </div>
 
                 <!-- SUMMARY CARDS -->
-                <div class="stats-grid">
+                <section class="stats-grid" aria-label="Business summary">
 
+                    <!-- TOTAL CUSTOMERS -->
                     <article class="stat-card">
+
                         <div class="stat-top">
                             <span>Total Customers</span>
                         </div>
+
                         <h2 id="totalCustomers">0</h2>
                         <p>Registered customers</p>
+
                     </article>
 
+                    <!-- ACTIVE POLICIES -->
                     <article class="stat-card">
+
                         <div class="stat-top">
                             <span>Active Policies</span>
                         </div>
+
                         <h2 id="activePolicies">0</h2>
                         <p>Currently active policies</p>
+
                     </article>
 
+                    <!-- PREMIUM COLLECTED -->
                     <article class="stat-card">
+
                         <div class="stat-top">
                             <span>Premium Collected</span>
                         </div>
+
                         <h2 id="premiumCollected">₹0</h2>
                         <p>Successful payments</p>
+
                     </article>
 
+                    <!-- PENDING PAYMENTS -->
                     <article class="stat-card">
+
                         <div class="stat-top">
                             <span>Pending Payments</span>
                         </div>
+
                         <h2 id="pendingPayments">0</h2>
                         <p>Payments awaiting completion</p>
+
                     </article>
 
-                </div>
+                </section>
 
-                <!-- CHARTS -->
+                <!-- DASHBOARD CHARTS -->
                 <div class="dashboard-grid">
 
+                    <!-- PREMIUM COLLECTION CHART -->
                     <section class="card chart-card">
+
                         <div class="section-heading">
+
                             <div>
                                 <h3>Premium Collection</h3>
                                 <p>Monthly successful payment totals</p>
                             </div>
+
                             <span class="chart-label">Last 6 months</span>
+
                         </div>
+
                         <div class="chart-container">
-                            <canvas id="premiumChart"
-                                    role="img"
-                                    aria-label="Bar chart showing monthly premium collection">
+
+                            <canvas
+                                id="premiumChart"
+                                role="img"
+                                aria-label="Bar chart showing monthly premium collection">
                                 Monthly premium collection chart.
                             </canvas>
+
                         </div>
+
                     </section>
 
+                    <!-- POLICY OVERVIEW CHART -->
                     <section class="card chart-card">
+
                         <div class="section-heading">
+
                             <div>
                                 <h3>Policy Overview</h3>
                                 <p>Policy status distribution</p>
                             </div>
+
                         </div>
+
                         <div class="donut-layout">
-                            <div class="donut-chart" id="policyDonut"
-                                 role="img" aria-label="Policy status chart">
+
+                            <!-- DONUT CHART -->
+                            <div
+                                class="donut-chart"
+                                id="policyDonut"
+                                role="img"
+                                aria-label="Policy status chart">
+
                                 <div class="donut-center">
                                     <strong id="policyTotal">0</strong>
                                     <span>Total Policies</span>
                                 </div>
+
                             </div>
+
+                            <!-- CHART LEGEND -->
                             <div class="chart-legend">
-                                <p><span class="legend-dot dot-active"></span>
-                                    Active <strong id="legendActive">0</strong></p>
-                                <p><span class="legend-dot dot-expired"></span>
-                                    Expired <strong id="legendExpired">0</strong></p>
-                                <p><span class="legend-dot dot-pending"></span>
-                                    Pending <strong id="legendPending">0</strong></p>
+
+                                <p>
+                                    <span class="legend-dot dot-active"></span>
+                                    Active
+                                    <strong id="legendActive">0</strong>
+                                </p>
+
+                                <p>
+                                    <span class="legend-dot dot-expired"></span>
+                                    Expired
+                                    <strong id="legendExpired">0</strong>
+                                </p>
+
+                                <p>
+                                    <span class="legend-dot dot-pending"></span>
+                                    Pending
+                                    <strong id="legendPending">0</strong>
+                                </p>
+
                             </div>
+
                         </div>
+
                     </section>
 
                 </div>
@@ -178,68 +275,105 @@
                 <!-- RENEWALS AND PAYMENTS -->
                 <div class="dashboard-grid lower-grid">
 
+                    <!-- UPCOMING RENEWALS -->
                     <section class="card">
+
                         <div class="section-heading">
+
                             <div>
                                 <h3>Upcoming Renewals</h3>
                                 <p>Policies expiring within 30 days</p>
                             </div>
-                            <a href="reminders.html" class="text-link">View all</a>
+
+                            <a href="reminders.html" class="text-link">
+                                View all
+                            </a>
+
                         </div>
 
                         <div class="table-wrap">
+
                             <table class="data-table">
+
                                 <thead>
                                     <tr>
-                                        <th>Customer</th>
-                                        <th>Vehicle Number</th>
-                                        <th>Expiry Date</th>
+                                        <th scope="col">Customer</th>
+                                        <th scope="col">Vehicle Number</th>
+                                        <th scope="col">Expiry Date</th>
                                     </tr>
                                 </thead>
+
                                 <tbody id="renewalsTable">
+
                                     <tr>
-                                        <td colspan="3">No renewal data available.</td>
+                                        <td colspan="3">
+                                            No renewal data available.
+                                        </td>
                                     </tr>
+
                                 </tbody>
+
                             </table>
+
                         </div>
+
                     </section>
 
+                    <!-- RECENT PAYMENTS -->
                     <section class="card">
+
                         <div class="section-heading">
+
                             <div>
                                 <h3>Recent Payments</h3>
                                 <p>Latest payment activity</p>
                             </div>
-                            <a href="payments.html" class="text-link">View all</a>
+
+                            <a href="payments.html" class="text-link">
+                                View all
+                            </a>
+
                         </div>
 
                         <div class="table-wrap">
+
                             <table class="data-table">
+
                                 <thead>
                                     <tr>
-                                        <th>Customer</th>
-                                        <th>Amount</th>
-                                        <th>Status</th>
+                                        <th scope="col">Customer</th>
+                                        <th scope="col">Amount</th>
+                                        <th scope="col">Status</th>
                                     </tr>
                                 </thead>
+
                                 <tbody id="paymentsTable">
+
                                     <tr>
-                                        <td colspan="3">No payment data available.</td>
+                                        <td colspan="3">
+                                            No payment data available.
+                                        </td>
                                     </tr>
+
                                 </tbody>
+
                             </table>
+
                         </div>
+
                     </section>
 
                 </div>
 
+                <!-- FOOTER -->
                 <footer class="app-footer">
                     © 2026 Popoye Insurance. All rights reserved.
                 </footer>
 
             </section>
+
         </main>
+
     </div>
 
 </body>
