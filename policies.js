@@ -1,13 +1,7 @@
-
 "use strict";
 
 document.addEventListener("DOMContentLoaded", function () {
-    // ==========================================
-    // POPOYE INSURANCE - POLICIES MODULE
-    // ==========================================
-
-    const POLICIES_KEY = "popoyePolicies";
-    const CUSTOMERS_KEY = "popoyeCustomers";
+    const API_URL = "http://localhost:3000/api";
     const LOGIN_KEY = "popoyeLoggedIn";
 
     if (localStorage.getItem(LOGIN_KEY) !== "true") {
@@ -22,78 +16,46 @@ document.addEventListener("DOMContentLoaded", function () {
     const tableBody = $("policiesTableBody");
     const message = $("policyMessage");
 
-    let policies = readArray(POLICIES_KEY);
-    let customers = readArray(CUSTOMERS_KEY);
+    let policies = [];
+    let customers = [];
     let currentPage = 1;
     let editingId = null;
     let messageTimer;
 
-    function readArray(key) {
-        try {
-            const value = JSON.parse(localStorage.getItem(key) || "[]");
-            return Array.isArray(value) ? value : [];
-        } catch (error) {
-            console.error("Unable to read " + key, error);
-            return [];
-        }
-    }
-
-    function savePolicies() {
-        try {
-            localStorage.setItem(POLICIES_KEY, JSON.stringify(policies));
-            return true;
-        } catch (error) {
-            console.error("Unable to save policies", error);
-            showMessage("Unable to save policies. Check browser storage.", true);
-            return false;
-        }
-    }
-
-    function makeId() {
-        if (window.crypto && crypto.randomUUID) {
-            return crypto.randomUUID();
-        }
-
-        return "POL-" + Date.now() + "-" +
-            Math.random().toString(36).slice(2, 8);
-    }
-
     function valueOf(item, keys, fallback = "") {
         for (const key of keys) {
-            if (item[key] !== undefined && item[key] !== null &&
+            if (item[key] !== undefined &&
+                item[key] !== null &&
                 item[key] !== "") {
                 return item[key];
             }
         }
-
         return fallback;
     }
 
-    function getId(item) {
-        return String(valueOf(item, ["id", "policyId", "policy_id"]));
+    function getId(policy) {
+        return String(valueOf(policy, ["id", "policy_id"], ""));
     }
 
-    function customerId(item) {
-        return String(valueOf(item, [
-            "customerId", "customer_id", "customer"
-        ]));
+    function customerId(policy) {
+        return String(valueOf(policy, ["customer_id", "customerId"], ""));
     }
 
     function getCustomerName(customer) {
         return valueOf(customer, [
-            "name", "customerName", "customer_name", "fullName"
+            "full_name", "fullName", "name", "customerName"
         ], "Unknown Customer");
     }
 
     function getPolicyCustomerName(policy) {
         const savedName = valueOf(policy, [
-            "customerName", "customer_name"
+            "full_name", "customer_name", "customerName"
         ]);
 
         if (savedName) return savedName;
 
         const customer = customers.find(c =>
-            String(valueOf(c, ["id", "customerId", "customer_id"])) ===
+            String(valueOf(c, ["id", "customer_id"])) ===
             customerId(policy)
         );
 
@@ -101,70 +63,42 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function getPolicyNumber(policy) {
-        return valueOf(policy, [
-            "policyNumber", "policy_number", "number"
-        ], "—");
+        return valueOf(policy, ["policy_number", "policyNumber"], "—");
     }
 
     function getExpiry(policy) {
         return valueOf(policy, [
-            "expiryDate", "expiry_date", "policyExpiry", "endDate"
+            "end_date", "expiryDate", "expiry_date"
         ]);
     }
 
     function getStartDate(policy) {
-        return valueOf(policy, [
-            "startDate", "start_date", "policyStartDate"
-        ]);
+        return valueOf(policy, ["start_date", "startDate"]);
     }
 
     function getPremium(policy) {
         return Number(valueOf(policy, [
-            "premium", "premiumAmount", "premium_amount", "amount"
+            "premium_amount", "premium", "premiumAmount"
         ], 0));
     }
 
     function getType(policy) {
-        return valueOf(policy, ["type", "policyType", "policy_type"], "—");
+        return valueOf(policy, [
+            "insurance_type", "policy_type", "policyType", "type"
+        ], "—");
     }
 
     function parseDate(value) {
         if (!value) return null;
 
         const date = new Date(value);
-
         return Number.isNaN(date.getTime()) ? null : date;
     }
 
-    function startOfToday() {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        return today;
-    }
-
-    function getStatus(policy) {
-        const savedStatus = String(valueOf(policy, [
-            "status", "policyStatus", "policy_status"
-        ], "Active")).toLowerCase();
-
-        if (savedStatus === "pending") return "Pending";
-
-        const expiry = parseDate(getExpiry(policy));
-
-        if (expiry) {
-            expiry.setHours(0, 0, 0, 0);
-
-            if (expiry < startOfToday()) return "Expired";
-        }
-
-        if (savedStatus === "expired") return "Expired";
-
-        return "Active";
-    }
-
     function formatDate(value) {
-        const date = parseDate(value);
+        if (!value) return "—";
 
+        const date = parseDate(value);
         return date ? date.toLocaleDateString("en-IN") : "—";
     }
 
@@ -188,10 +122,48 @@ document.addEventListener("DOMContentLoaded", function () {
         }, 4000);
     }
 
-    // ==========================================
-    // CUSTOMER DROPDOWN
-    // ==========================================
+    function getStatus(policy) {
+        const expiry = parseDate(getExpiry(policy));
 
+        if (!expiry) return "Pending";
+
+        expiry.setHours(0, 0, 0, 0);
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        return expiry < today ? "Expired" : "Active";
+    }
+
+    async function loadPoliciesFromAPI() {
+        try {
+            const [policyResponse, customerResponse] =
+                await Promise.all([
+                    fetch(`${API_URL}/policies`),
+                    fetch(`${API_URL}/customers`)
+                ]);
+
+            if (!policyResponse.ok || !customerResponse.ok) {
+                throw new Error("API request failed");
+            }
+
+            const policyData = await policyResponse.json();
+            const customerData = await customerResponse.json();
+
+            policies = policyData.policies || [];
+            customers = customerData.customers || [];
+
+            populateCustomers();
+            renderPolicies();
+        } catch (error) {
+            console.error("Policies loading error:", error);
+            showMessage(
+                "Could not load policies. Check the backend server.",
+                true
+            );
+        }
+    }
+        // Populate customer dropdown from MySQL API data
     function populateCustomers(selectedId = "") {
         const select = $("policyCustomer");
         select.replaceChildren();
@@ -204,103 +176,102 @@ document.addEventListener("DOMContentLoaded", function () {
 
         select.appendChild(placeholder);
 
-        customers.forEach(function (customer) {
+        customers.forEach(customer => {
             const option = document.createElement("option");
-            option.value = String(valueOf(customer, [
-                "id", "customerId", "customer_id"
-            ]));
-
-            option.textContent = getCustomerName(customer) +
+            option.value = String(customer.id);
+            option.textContent =
+                getCustomerName(customer) +
                 (customer.phone ? " — " + customer.phone : "");
 
             select.appendChild(option);
         });
 
-        select.value = selectedId;
+        select.value = String(selectedId);
     }
 
+    // Fill vehicle details when a customer is selected
     function fillVehicleFromCustomer() {
-        const id = $("policyCustomer").value;
+        const selectedId = $("policyCustomer").value;
 
         const customer = customers.find(c =>
-            String(valueOf(c, ["id", "customerId", "customer_id"])) === id
+            String(c.id) === selectedId
         );
 
         if (!customer) return;
 
-        $("policyVehicle").value = valueOf(customer, [
-            "vehicleNumber", "vehicle_number", "registrationNumber"
-        ]);
+        $("policyVehicle").value =
+            customer.vehicle_number || customer.vehicleNumber || "";
 
-        $("policyModel").value = valueOf(customer, [
-            "vehicleModel", "vehicle_model", "model"
-        ]);
+        if ($("policyModel")) {
+            $("policyModel").value =
+                customer.vehicle_model || customer.vehicleModel || "";
+        }
     }
 
-    $("policyCustomer").addEventListener("change", fillVehicleFromCustomer);
+    $("policyCustomer").addEventListener(
+        "change",
+        fillVehicleFromCustomer
+    );
 
-    // ==========================================
-    // STATUS SUMMARY
-    // ==========================================
-
+    // Update policy summary cards
     function updateSummary() {
-        const today = startOfToday();
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
         const limit = new Date(today);
         limit.setDate(limit.getDate() + 30);
 
         $("totalPolicies").textContent = policies.length;
 
-        $("activePolicies").textContent = policies.filter(
-            p => getStatus(p) === "Active"
-        ).length;
+        $("activePolicies").textContent =
+            policies.filter(p => getStatus(p) === "Active").length;
 
-        $("expiredPolicies").textContent = policies.filter(
-            p => getStatus(p) === "Expired"
-        ).length;
+        $("expiredPolicies").textContent =
+            policies.filter(p => getStatus(p) === "Expired").length;
 
-        $("expiringPolicies").textContent = policies.filter(function (p) {
+        $("expiringPolicies").textContent = policies.filter(p => {
             const expiry = parseDate(getExpiry(p));
 
             if (!expiry || getStatus(p) !== "Active") return false;
 
             expiry.setHours(0, 0, 0, 0);
-
             return expiry >= today && expiry <= limit;
         }).length;
     }
 
-    // ==========================================
-    // FILTERING AND SEARCH
-    // ==========================================
-
+    // Search and filter policies
     function getFilteredPolicies() {
         const query = $("policySearch").value.trim().toLowerCase();
         const status = $("policyStatusFilter").value;
         const type = $("policyTypeFilter").value;
 
-        return policies.filter(function (policy) {
+        return policies.filter(policy => {
             const searchable = [
                 getPolicyNumber(policy),
                 getPolicyCustomerName(policy),
-                valueOf(policy, ["vehicleNumber", "vehicle_number"]),
-                valueOf(policy, ["insuranceCompany", "insurance_company"]),
-                getType(policy)
+                policy.vehicle_number || "",
+                policy.insurance_type || "",
+                policy.policy_type || ""
             ].join(" ").toLowerCase();
 
-            return searchable.includes(query) &&
-                (status === "All" || getStatus(policy) === status) &&
-                (type === "All" || getType(policy) === type);
+            const matchesSearch = searchable.includes(query);
+            const matchesStatus =
+                status === "All" || getStatus(policy) === status;
+            const matchesType =
+                type === "All" || getType(policy) === type;
+
+            return matchesSearch && matchesStatus && matchesType;
         });
     }
 
-    // ==========================================
-    // TABLE RENDERING AND PAGINATION
-    // ==========================================
-
+    // Render policies in the table
     function renderPolicies() {
         const filtered = getFilteredPolicies();
         const pageSize = Number($("policyPageSize").value) || 10;
-        const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+        const totalPages = Math.max(
+            1,
+            Math.ceil(filtered.length / pageSize)
+        );
 
         currentPage = Math.min(currentPage, totalPages);
 
@@ -315,22 +286,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
             cell.colSpan = 8;
             cell.textContent = policies.length === 0
-                ? "No policies registered yet. Click Add Policy to begin."
+                ? "No policies found in the database."
                 : "No policies match your search or filters.";
         } else {
-            visible.forEach(function (policy) {
+            visible.forEach(policy => {
                 const row = tableBody.insertRow();
 
                 row.insertCell().textContent = getPolicyNumber(policy);
-                row.insertCell().textContent = getPolicyCustomerName(policy);
-
-                row.insertCell().textContent = valueOf(policy, [
-                    "vehicleNumber", "vehicle_number", "registrationNumber"
-                ], "—");
-
+                row.insertCell().textContent =
+                    getPolicyCustomerName(policy);
+                row.insertCell().textContent =
+                    policy.vehicle_number || "—";
                 row.insertCell().textContent = getType(policy);
-                row.insertCell().textContent = money(getPremium(policy));
-                row.insertCell().textContent = formatDate(getExpiry(policy));
+                row.insertCell().textContent =
+                    money(getPremium(policy));
+                row.insertCell().textContent =
+                    formatDate(getExpiry(policy));
 
                 const statusCell = row.insertCell();
                 const badge = document.createElement("span");
@@ -353,13 +324,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 edit.type = "button";
                 edit.className = "table-action";
                 edit.textContent = "Edit";
-                edit.addEventListener("click", () => openEditForm(getId(policy)));
+                edit.addEventListener("click", () => {
+                    openEditForm(policy.id);
+                });
 
                 const remove = document.createElement("button");
                 remove.type = "button";
                 remove.className = "table-action delete-action";
                 remove.textContent = "Delete";
-                remove.addEventListener("click", () => deletePolicy(getId(policy)));
+                remove.addEventListener("click", () => {
+                    deletePolicy(policy.id);
+                });
 
                 actions.append(edit, remove);
                 actionCell.appendChild(actions);
@@ -368,7 +343,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         updateSummary();
 
-        const endIndex = Math.min(startIndex + pageSize, filtered.length);
+        const endIndex = Math.min(
+            startIndex + pageSize,
+            filtered.length
+        );
 
         $("policyPageInfo").textContent =
             `Showing ${filtered.length ? startIndex + 1 : 0}–${endIndex} of ${filtered.length} policies`;
@@ -379,11 +357,7 @@ document.addEventListener("DOMContentLoaded", function () {
         $("policyPrevBtn").disabled = currentPage <= 1;
         $("policyNextBtn").disabled = currentPage >= totalPages;
     }
-
-    // ==========================================
-    // ADD POLICY FORM
-    // ==========================================
-
+        // Open the form to add a new policy
     function openAddForm() {
         editingId = null;
         form.reset();
@@ -394,17 +368,19 @@ document.addEventListener("DOMContentLoaded", function () {
         $("policyStatus").value = "Active";
 
         populateCustomers();
-
         formCard.hidden = false;
-        formCard.scrollIntoView({ behavior: "smooth", block: "start" });
+
+        formCard.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
     }
 
-    // ==========================================
-    // EDIT POLICY FORM
-    // ==========================================
-
+    // Open the form to edit an existing policy
     function openEditForm(id) {
-        const policy = policies.find(p => getId(p) === String(id));
+        const policy = policies.find(
+            p => String(p.id) === String(id)
+        );
 
         if (!policy) return;
 
@@ -412,180 +388,197 @@ document.addEventListener("DOMContentLoaded", function () {
         form.reset();
 
         $("policyId").value = editingId;
+        populateCustomers(policy.customer_id);
 
-        populateCustomers(customerId(policy));
+        $("policyNumber").value = policy.policy_number || "";
+        $("policyVehicle").value = policy.vehicle_number || "";
 
-        $("policyNumber").value = getPolicyNumber(policy);
-        $("policyVehicle").value = valueOf(policy, [
-            "vehicleNumber", "vehicle_number", "registrationNumber"
-        ]);
+        if ($("policyModel")) {
+            $("policyModel").value = policy.vehicle_model || "";
+        }
 
-        $("policyModel").value = valueOf(policy, [
-            "vehicleModel", "vehicle_model", "model"
-        ]);
+        $("insuranceCompany").value =
+            policy.insurance_company || "";
 
-        $("insuranceCompany").value = valueOf(policy, [
-            "insuranceCompany", "insurance_company"
-        ]);
+        $("policyType").value =
+            policy.insurance_type || policy.policy_type || "";
 
-        $("policyType").value = getType(policy);
-        $("policyStartDate").value = getStartDate(policy);
-        $("policyExpiryDate").value = getExpiry(policy);
-        $("policyPremium").value = getPremium(policy);
+        $("policyStartDate").value =
+            String(policy.start_date || "").slice(0, 10);
+
+        $("policyExpiryDate").value =
+            String(policy.end_date || "").slice(0, 10);
+
+        $("policyPremium").value = policy.premium_amount || "";
         $("policyStatus").value = getStatus(policy);
 
         $("policyFormTitle").textContent = "Edit Policy";
         $("savePolicyBtn").textContent = "Update Policy";
 
         formCard.hidden = false;
-        formCard.scrollIntoView({ behavior: "smooth", block: "start" });
+        formCard.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
     }
 
-    // ==========================================
-    // SAVE POLICY
-    // ==========================================
-
-    form.addEventListener("submit", function (event) {
+    // Save a new policy or update an existing one
+    form.addEventListener("submit", async function (event) {
         event.preventDefault();
 
-        customers = readArray(CUSTOMERS_KEY);
-        populateCustomers($("policyCustomer").value);
-
         const selectedCustomerId = $("policyCustomer").value;
-
-        const customer = customers.find(c =>
-            String(valueOf(c, ["id", "customerId", "customer_id"])) ===
-            selectedCustomerId
+        const customer = customers.find(
+            c => String(c.id) === selectedCustomerId
         );
 
         if (!customer) {
-            showMessage("Please select an existing customer first.", true);
+            showMessage("Please select a customer first.", true);
             return;
         }
 
         const policyNumber = $("policyNumber").value.trim();
         const startDate = $("policyStartDate").value;
-        const expiryDate = $("policyExpiryDate").value;
+        const endDate = $("policyExpiryDate").value;
         const premium = Number($("policyPremium").value);
+        const vehicleNumber = $("policyVehicle").value.trim();
 
-        if (!policyNumber || !startDate || !expiryDate ||
-            !$("policyVehicle").value.trim()) {
-            showMessage("Please complete all required fields.", true);
+        if (
+            !policyNumber ||
+            !startDate ||
+            !endDate ||
+            !vehicleNumber
+        ) {
+            showMessage("Complete all required fields.", true);
             return;
         }
 
-        if (expiryDate < startDate) {
-            showMessage("Expiry date cannot be before the start date.", true);
+        if (endDate < startDate) {
+            showMessage(
+                "Expiry date cannot be before the start date.",
+                true
+            );
             return;
         }
 
         if (!Number.isFinite(premium) || premium <= 0) {
-            showMessage("Enter a valid premium amount greater than zero.", true);
+            showMessage("Enter a valid premium amount.", true);
             return;
         }
 
-        const duplicate = policies.some(function (policy) {
-            return getPolicyNumber(policy).toLowerCase() ===
-                policyNumber.toLowerCase() &&
-                getId(policy) !== editingId;
-        });
+        const selectedVehicle = vehicleNumber.toUpperCase();
 
-        if (duplicate) {
-            showMessage("This policy number already exists.", true);
-            $("policyNumber").focus();
+       const vehicleId = await policyVehicleId(selectedVehicle, customer.id);
+
+        if (!vehicleId) {
+            showMessage(
+                "Could not identify this vehicle in the database.",
+                true
+            );
             return;
         }
 
-        const existing = policies.find(p => getId(p) === editingId);
-
-        let chosenStatus = $("policyStatus").value;
-
-        // Keep expiry-based status accurate unless the policy is pending.
-        if (chosenStatus !== "Pending" && expiryDate < localDateString()) {
-            chosenStatus = "Expired";
-        } else if (chosenStatus === "Expired" && expiryDate >= localDateString()) {
-            chosenStatus = "Active";
-        }
-
-        const policyData = {
-            ...(existing || {}),
-            id: editingId || makeId(),
-            customerId: selectedCustomerId,
-            customerName: getCustomerName(customer),
-            policyNumber: policyNumber,
-            vehicleNumber: $("policyVehicle").value.trim().toUpperCase(),
-            vehicleModel: $("policyModel").value.trim(),
-            insuranceCompany: $("insuranceCompany").value.trim(),
-            type: $("policyType").value,
-            startDate: startDate,
-            expiryDate: expiryDate,
-            premium: premium,
-            status: chosenStatus,
-            updatedAt: new Date().toISOString()
+        const payload = {
+            policy_number: policyNumber,
+            customer_id: Number(customer.id),
+            vehicle_id: Number(vehicleId),
+            policy_type: $("policyType").value,
+            insurance_type: $("policyType").value,
+            premium_amount: premium,
+            start_date: startDate,
+            end_date: endDate,
+            notes: ""
         };
 
-        if (existing) {
-            policies = policies.map(p =>
-                getId(p) === editingId ? policyData : p
-            );
-        } else {
-            policyData.createdAt = new Date().toISOString();
-            policies.unshift(policyData);
+        try {
+            const url = editingId
+                ? `${API_URL}/policies/${editingId}`
+                : `${API_URL}/policies`;
+
+            const response = await fetch(url, {
+                method: editingId ? "PUT" : "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error("Please provide all required policy fields");
+            }
+
+            formCard.hidden = true;
+            form.reset();
+            editingId = null;
+            currentPage = 1;
+
+            await loadPoliciesFromAPI();
+            showMessage("Policy saved successfully.");
+        } catch (error) {
+            console.error("Policy save failed:", error);
+            showMessage(error.message, true);
         }
-
-        if (!savePolicies()) return;
-
-        formCard.hidden = true;
-        form.reset();
-        editingId = null;
-        currentPage = 1;
-
-        renderPolicies();
-        showMessage(existing
-            ? "Policy updated successfully."
-            : "Policy registered successfully.");
     });
 
-    function localDateString() {
-        const date = new Date();
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
+    // Find the selected vehicle's database ID
+    async function policyVehicleId(vehicleNumber, customerId) {
+        try {
+            const response = await fetch(`${API_URL}/vehicles`);
 
-        return `${year}-${month}-${day}`;
+            if (!response.ok) return null;
+
+            const data = await response.json();
+            const vehicles = data.vehicles || [];
+
+            const vehicle = vehicles.find(v =>
+                String(v.customer_id) === String(customerId) &&
+                String(v.vehicle_number).toUpperCase() === vehicleNumber
+            );
+
+            return vehicle ? vehicle.id : null;
+        } catch (error) {
+            console.error("Vehicle lookup failed:", error);
+            return null;
+        }
     }
-
-    // ==========================================
-    // DELETE POLICY
-    // ==========================================
-
-    function deletePolicy(id) {
-        const policy = policies.find(p => getId(p) === String(id));
+        // Delete a policy from MySQL
+    async function deletePolicy(id) {
+        const policy = policies.find(
+            p => String(p.id) === String(id)
+        );
 
         if (!policy) return;
 
-        if (!confirm(
+        const confirmed = confirm(
             `Delete policy "${getPolicyNumber(policy)}"? This cannot be undone.`
-        )) {
-            return;
+        );
+
+        if (!confirmed) return;
+
+        try {
+            const response = await fetch(
+                `${API_URL}/policies/${id}`,
+                { method: "DELETE" }
+            );
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    result.message || "Could not delete policy."
+                );
+            }
+
+            await loadPoliciesFromAPI();
+            showMessage("Policy deleted successfully.");
+        } catch (error) {
+            console.error("Policy deletion failed:", error);
+            showMessage(error.message, true);
         }
-
-        const previous = policies;
-        policies = policies.filter(p => getId(p) !== String(id));
-
-        if (!savePolicies()) {
-            policies = previous;
-            return;
-        }
-
-        renderPolicies();
-        showMessage("Policy deleted successfully.");
     }
 
-    // ==========================================
-    // EXPORT CSV
-    // ==========================================
-
+    // Export filtered policies to CSV
     function exportPolicies() {
         const filtered = getFilteredPolicies();
 
@@ -597,28 +590,30 @@ document.addEventListener("DOMContentLoaded", function () {
         const columns = [
             ["Policy Number", getPolicyNumber],
             ["Customer", getPolicyCustomerName],
-            ["Vehicle Number", p => valueOf(p, ["vehicleNumber", "vehicle_number"])],
-            ["Vehicle Model", p => valueOf(p, ["vehicleModel", "vehicle_model"])],
-            ["Insurance Company", p => valueOf(p, ["insuranceCompany", "insurance_company"])],
-            ["Policy Type", getType],
+            ["Vehicle Number", p => p.vehicle_number || ""],
+            ["Insurance Type", getType],
+            ["Premium", getPremium],
             ["Start Date", getStartDate],
             ["Expiry Date", getExpiry],
-            ["Premium", getPremium],
             ["Status", getStatus]
         ];
 
         function csvCell(value) {
             let text = String(value ?? "");
 
-            if (/^[\s]*[=+\-@]/.test(text)) text = "'" + text;
+            if (/^[\s]*[=+\-@]/.test(text)) {
+                text = "'" + text;
+            }
 
             return '"' + text.replace(/"/g, '""') + '"';
         }
 
         const csv = [
-            columns.map(c => csvCell(c[0])).join(","),
+            columns.map(column => csvCell(column[0])).join(","),
             ...filtered.map(policy =>
-                columns.map(c => csvCell(c[1](policy))).join(",")
+                columns
+                    .map(column => csvCell(column[1](policy)))
+                    .join(",")
             )
         ].join("\r\n");
 
@@ -638,19 +633,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
         showMessage("Policy CSV export started.");
     }
-
-    // ==========================================
-    // EVENT LISTENERS
-    // ==========================================
-
-    $("addPolicyBtn").addEventListener("click", openAddForm);
-
+        // Cancel the policy form
     $("cancelPolicyBtn").addEventListener("click", function () {
         formCard.hidden = true;
         form.reset();
         editingId = null;
     });
 
+    // Open the Add Policy form
+    $("addPolicyBtn").addEventListener("click", openAddForm);
+
+    // Reset the policy form
     $("resetPolicyBtn").addEventListener("click", function () {
         if (editingId) {
             openEditForm(editingId);
@@ -661,8 +654,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    ["policySearch", "policyStatusFilter", "policyTypeFilter",
-        "policyPageSize"].forEach(function (id) {
+    // Search and filter
+    ["policySearch", "policyStatusFilter",
+        "policyTypeFilter", "policyPageSize"].forEach(function (id) {
         $(id).addEventListener(
             id === "policySearch" ? "input" : "change",
             function () {
@@ -672,6 +666,7 @@ document.addEventListener("DOMContentLoaded", function () {
         );
     });
 
+    // Previous page
     $("policyPrevBtn").addEventListener("click", function () {
         if (currentPage > 1) {
             currentPage--;
@@ -679,11 +674,13 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+    // Next page
     $("policyNextBtn").addEventListener("click", function () {
-        const totalPages = Math.max(1, Math.ceil(
-            getFilteredPolicies().length /
-            (Number($("policyPageSize").value) || 10)
-        ));
+        const pageSize = Number($("policyPageSize").value) || 10;
+        const totalPages = Math.max(
+            1,
+            Math.ceil(getFilteredPolicies().length / pageSize)
+        );
 
         if (currentPage < totalPages) {
             currentPage++;
@@ -691,29 +688,20 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+    // Export CSV
     $("exportPoliciesBtn").addEventListener("click", exportPolicies);
 
+    // Mobile sidebar
     $("menuToggle").addEventListener("click", function () {
         $("sidebar").classList.toggle("sidebar-open");
     });
 
+    // Logout
     $("logoutBtn").addEventListener("click", function () {
-        localStorage.removeItem(LOGIN_KEY);
+        localStorage.removeItem("popoyeLoggedIn");
         window.location.href = "login.html";
     });
 
-    window.addEventListener("storage", function (event) {
-        if (event.key === CUSTOMERS_KEY) {
-            customers = readArray(CUSTOMERS_KEY);
-            populateCustomers();
-        }
-
-        if (event.key === POLICIES_KEY) {
-            policies = readArray(POLICIES_KEY);
-            renderPolicies();
-        }
-    });
-
-    populateCustomers();
-    renderPolicies();
+    // Load policy data from the API when the page opens
+    loadPoliciesFromAPI();
 });
