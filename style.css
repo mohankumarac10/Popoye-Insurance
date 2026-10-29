@@ -3,7 +3,7 @@
     --navy: #1e133d;
     --teal: #2d7fde;
     --background: #dbf2f8;
-    --surface: #f2f0e9;
+    --surface: #d4d2f3;
     --text: #24364B;
     --muted: #718096;
     --border: #fffbfb;
@@ -452,7 +452,7 @@ button {
     border: 1px solid var(--border);
     border-radius: 8px;
     color: var(--navy);
-    background: #c1d5d2;
+    background: #dde6e5;
     font-size: 12px;
 }
 
