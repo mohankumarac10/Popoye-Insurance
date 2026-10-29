@@ -1564,3 +1564,137 @@ button {
     padding: 10px;
   }
 }
+
+/* =================================
+   POPOYE INSURANCE - WEB ANIMATIONS
+   ================================= */
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Page entrance animation */
+body {
+    animation: pageFadeIn 0.6s ease-out;
+}
+
+@keyframes pageFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Dashboard cards */
+.stat-card,
+.dashboard-card,
+.card {
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease,
+        border-color 0.3s ease;
+}
+
+.stat-card:hover,
+.dashboard-card:hover,
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 28px rgba(20, 43, 74, 0.12);
+    border-color: #0D9488;
+}
+
+/* Buttons */
+button,
+.btn,
+.primary-btn {
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background-color 0.2s ease;
+}
+
+button:hover,
+.btn:hover,
+.primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 14px rgba(13, 148, 136, 0.2);
+}
+
+button:active,
+.btn:active,
+.primary-btn:active {
+    transform: scale(0.97);
+}
+
+/* Sidebar links */
+.sidebar a {
+    transition:
+        background-color 0.25s ease,
+        color 0.25s ease,
+        padding-left 0.25s ease;
+}
+
+.sidebar a:hover {
+    background-color: rgba(13, 148, 136, 0.12);
+    color: #0D9488;
+    padding-left: 20px;
+}
+
+/* Tables */
+tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+tbody tr:hover {
+    background-color: #F0FDFA;
+}
+
+/* Form inputs */
+input,
+select,
+textarea {
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: #0D9488;
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+}
+
+/* Animated loading spinner */
+.loading-spinner {
+    width: 28px;
+    height: 28px;
+    border: 3px solid #E3EAF2;
+    border-top-color: #0D9488;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+}
