@@ -4,10 +4,7 @@
 document.addEventListener("DOMContentLoaded", function () {
     // ==========================================
     // POPOYE INSURANCE - CUSTOMERS MODULE
-    // Uses existing customers.html IDs
     // ==========================================
-
-    const STORAGE_KEY = "popoyeCustomers";
 
     const $ = (id) => document.getElementById(id);
 
@@ -20,7 +17,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const resetCustomerBtn = $("resetCustomerBtn");
     const customerId = $("customerId");
 
-    // Input elements
+    // Inputs
     const customerName = $("customerName");
     const customerPhone = $("customerPhone");
     const customerEmail = $("customerEmail");
@@ -37,12 +34,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const customerPrevBtn = $("customerPrevBtn");
     const customerNextBtn = $("customerNextBtn");
 
-    // Pagination and messages
+    // Summary and messages
     const customerPageInfo = $("customerPageInfo");
     const customerPageNumber = $("customerPageNumber");
     const customerMessage = $("customerMessage");
-
-    // Summary cards
     const customerCount = $("customerCount");
     const activeCustomerCount = $("activeCustomerCount");
     const inactiveCustomerCount = $("inactiveCustomerCount");
@@ -56,69 +51,94 @@ document.addEventListener("DOMContentLoaded", function () {
     const sidebar = $("sidebar");
     const menuToggle = $("menuToggle");
 
-    let customers = loadCustomers();
+    const API_URL = "http://localhost:3000/api/customers";
+
+    let customers = [];
     let currentPage = 1;
 
     // ==========================================
-    // LOAD AND SAVE CUSTOMER DATA
+    // HELPERS
     // ==========================================
 
-    function loadCustomers() {
-        try {
-            const storedData = localStorage.getItem(STORAGE_KEY);
+    function escapeHTML(value) {
+        const entities = {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        };
 
-            if (!storedData) {
-                return [];
-            }
-
-            const parsedData = JSON.parse(storedData);
-
-            if (!Array.isArray(parsedData)) {
-                return [];
-            }
-
-            return parsedData.map((customer, index) => ({
-                id: String(customer.id || `CUS${Date.now()}${index}`),
-                name: String(customer.name || customer.customerName || ""),
-                phone: String(customer.phone || customer.customerPhone || ""),
-                email: String(customer.email || customer.customerEmail || ""),
-                vehicleNumber: String(customer.vehicleNumber || ""),
-                vehicleModel: String(customer.vehicleModel || ""),
-                status: String(customer.status || customer.customerStatus || "Active"),
-                address: String(customer.address || customer.customerAddress || ""),
-                createdAt: customer.createdAt || new Date().toISOString()
-            }));
-        } catch (error) {
-            console.error("Unable to load customers:", error);
-            return [];
-        }
+        return String(value ?? "").replace(/[&<>"']/g, function (character) {
+            return entities[character];
+        });
     }
-
-    function saveCustomers() {
-        try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(customers));
-            return true;
-        } catch (error) {
-            console.error("Unable to save customers:", error);
-            showMessage(
-                "Unable to save customer data. Check your browser storage.",
-                true
-            );
-            return false;
-        }
-    }
-
-    // ==========================================
-    // MESSAGE DISPLAY
-    // ==========================================
 
     function showMessage(message, isError = false) {
         if (!customerMessage) return;
 
         customerMessage.textContent = message;
         customerMessage.classList.toggle("error", isError);
-
         customerMessage.setAttribute("role", "status");
+    }
+
+    async function readResponse(response) {
+        let result;
+
+        try {
+            result = await response.json();
+        } catch {
+            result = {};
+        }
+
+        if (!response.ok) {
+            throw new Error(
+                result.message || `Request failed (${response.status}).`
+            );
+        }
+
+        return result;
+    }
+
+    function mapCustomer(customer) {
+        return {
+            id: String(customer.id),
+            name: customer.full_name || "",
+            phone: String(customer.phone || ""),
+            email: customer.email || "",
+            vehicleNumber: customer.vehicle_number || "",
+            vehicleModel: customer.vehicle_model || "",
+            status: customer.status || "Active",
+            address: customer.address || "",
+            createdAt: customer.created_at || ""
+        };
+    }
+
+    // ==========================================
+    // LOAD CUSTOMERS FROM MYSQL
+    // ==========================================
+
+    async function loadCustomersFromAPI() {
+        try {
+            const response = await fetch(API_URL);
+            const result = await readResponse(response);
+
+            if (!Array.isArray(result.customers)) {
+                throw new Error("The server returned an invalid customer list.");
+            }
+
+            customers = result.customers.map(mapCustomer);
+            renderCustomers();
+
+        } catch (error) {
+            console.error("Failed to load customers:", error);
+            renderCustomers();
+
+            showMessage(
+                "Unable to load customers. Check that the backend is running.",
+                true
+            );
+        }
     }
 
     // ==========================================
@@ -144,18 +164,21 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
             customerForm.reset();
             customerId.value = "";
-            customerStatus.value = "Active";
+
+            if (customerStatus) {
+                customerStatus.value = "Active";
+            }
+
             customerFormTitle.textContent = "Add New Customer";
         }
 
         showMessage("");
-
         customerFormCard.scrollIntoView({
             behavior: "smooth",
             block: "start"
         });
 
-        customerName.focus({ preventScroll: true });
+        if (customerName) customerName.focus();
     }
 
     function closeCustomerForm() {
@@ -163,8 +186,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
         customerForm.reset();
         customerId.value = "";
-        customerStatus.value = "Active";
-        customerFormTitle.textContent = "Add New Customer";
+
+        if (customerStatus) {
+            customerStatus.value = "Active";
+        }
+
+        if (customerFormTitle) {
+            customerFormTitle.textContent = "Add New Customer";
+        }
+
         customerFormCard.hidden = true;
     }
 
@@ -178,15 +208,16 @@ document.addEventListener("DOMContentLoaded", function () {
         cancelCustomerBtn.addEventListener("click", closeCustomerForm);
     }
 
-    if (resetCustomerBtn) {
+    if (resetCustomerBtn && customerForm) {
         resetCustomerBtn.addEventListener("click", function () {
             const editingId = customerId.value;
 
             customerForm.reset();
             customerId.value = editingId;
-            customerStatus.value = "Active";
 
-            customerName.focus();
+            if (customerStatus) {
+                customerStatus.value = "Active";
+            }
         });
     }
 
@@ -195,7 +226,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // ==========================================
 
     if (customerForm) {
-        customerForm.addEventListener("submit", function (event) {
+        customerForm.addEventListener("submit", async function (event) {
             event.preventDefault();
 
             const id = customerId.value.trim();
@@ -203,133 +234,65 @@ document.addEventListener("DOMContentLoaded", function () {
             const phone = customerPhone.value.replace(/\D/g, "");
             const email = customerEmail.value.trim();
             const vehicle = vehicleNumber.value.trim().toUpperCase();
-            const model = vehicleModel.value.trim();
-            const status = customerStatus.value;
             const address = customerAddress.value.trim();
 
-            // Required-field validation
+            const isEditing = Boolean(id);
+
             if (!name || !phone || !vehicle) {
                 showMessage(
-                    "Please enter the customer name, phone number, and vehicle number.",
+                    "Enter customer name, phone number, and vehicle number.",
                     true
                 );
                 return;
             }
 
-            // Indian mobile number validation
             if (!/^[0-9]{10}$/.test(phone)) {
-                showMessage(
-                    "Enter a valid 10-digit mobile number.",
-                    true
-                );
+                showMessage("Enter a valid 10-digit mobile number.", true);
                 customerPhone.focus();
                 return;
             }
 
-            // Email validation
-            if (
-                email &&
-                !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-            ) {
-                showMessage("Please enter a valid email address.", true);
+            if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                showMessage("Enter a valid email address.", true);
                 customerEmail.focus();
                 return;
             }
 
-            // Prevent duplicate phone numbers
-            const duplicatePhone = customers.some(function (customer) {
-                return customer.phone === phone && customer.id !== id;
-            });
+            try {
+                const response = await fetch(
+                    isEditing
+                        ? `${API_URL}/${encodeURIComponent(id)}`
+                        : API_URL,
+                    {
+                        method: isEditing ? "PUT" : "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            full_name: name,
+                            phone: phone,
+                            email: email,
+                            address: address,
+                            vehicle_number: vehicle
+                        })
+                    }
+                );
 
-            if (duplicatePhone) {
+                await readResponse(response);
+                await loadCustomersFromAPI();
+
+                closeCustomerForm();
+
                 showMessage(
-                    "A customer with this phone number already exists.",
-                    true
+                    isEditing
+                        ? "Customer updated successfully in MySQL."
+                        : "Customer saved successfully to MySQL."
                 );
-                customerPhone.focus();
-                return;
+
+            } catch (error) {
+                console.error("Customer save failed:", error);
+                showMessage(error.message, true);
             }
-
-            // Prevent duplicate vehicle numbers
-            const duplicateVehicle = customers.some(function (customer) {
-                return (
-                    customer.vehicleNumber.toUpperCase() === vehicle &&
-                    customer.id !== id
-                );
-            });
-
-            if (duplicateVehicle) {
-                showMessage(
-                    "This vehicle number is already registered.",
-                    true
-                );
-                vehicleNumber.focus();
-                return;
-            }
-
-            const now = new Date().toISOString();
-
-            const customerData = {
-                id: id || `CUS${Date.now()}`,
-                name: name,
-                phone: phone,
-                email: email,
-                vehicleNumber: vehicle,
-                vehicleModel: model,
-                status: status,
-                address: address,
-                createdAt: now
-            };
-
-            if (id) {
-                const index = customers.findIndex(function (customer) {
-                    return customer.id === id;
-                });
-
-                if (index === -1) {
-                    showMessage("Customer record not found.", true);
-                    return;
-                }
-
-                customerData.createdAt = customers[index].createdAt;
-                customers[index] = customerData;
-            } else {
-                customers.unshift(customerData);
-            }
-
-            if (!saveCustomers()) {
-                customers = loadCustomers();
-                renderCustomers();
-                return;
-            }
-
-            currentPage = 1;
-            renderCustomers();
-            closeCustomerForm();
-
-            showMessage(
-                id
-                    ? "Customer updated successfully."
-                    : "Customer added successfully."
-            );
-        });
-    }
-
-    // ==========================================
-    // SAFE HTML OUTPUT
-    // ==========================================
-
-    function escapeHTML(value) {
-        return String(value ?? "").replace(/[&<>"']/g, function (character) {
-            const entities = {
-                "&": "&amp;",
-                "<": "&lt;",
-                ">": "&gt;",
-                '"': "&quot;",
-                "'": "&#39;"
-            };
-
-            return entities[character];
         });
     }
 
@@ -367,7 +330,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ==========================================
-    // UPDATE SUMMARY CARDS
+    // SUMMARY CARDS
     // ==========================================
 
     function updateStatistics(filteredCustomers) {
@@ -400,17 +363,22 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!customersTableBody) return;
 
         const filteredCustomers = getFilteredCustomers();
+
         const pageSize = customerPageSize
             ? Number(customerPageSize.value) || 10
             : 10;
 
         const totalCustomers = filteredCustomers.length;
-        const totalPages = Math.max(1, Math.ceil(totalCustomers / pageSize));
+        const totalPages = Math.max(
+            1,
+            Math.ceil(totalCustomers / pageSize)
+        );
 
         currentPage = Math.min(currentPage, totalPages);
         currentPage = Math.max(currentPage, 1);
 
         const startIndex = (currentPage - 1) * pageSize;
+
         const pageCustomers = filteredCustomers.slice(
             startIndex,
             startIndex + pageSize
@@ -428,14 +396,12 @@ document.addEventListener("DOMContentLoaded", function () {
                                 : "No customers match your search or filter."
                         }
                     </td>
-                </tr>
-            `;
+                </tr>`;
         } else {
             customersTableBody.innerHTML = pageCustomers.map(function (customer) {
-                const statusClass =
-                    customer.status === "Active"
-                        ? "status-active"
-                        : "status-expired";
+                const statusClass = customer.status === "Active"
+                    ? "status-active"
+                    : "status-expired";
 
                 return `
                     <tr>
@@ -445,31 +411,23 @@ document.addEventListener("DOMContentLoaded", function () {
                                 <small>${escapeHTML(customer.email || "No email provided")}</small>
                             </div>
                         </td>
-
                         <td>${escapeHTML(customer.phone)}</td>
-
                         <td>${escapeHTML(customer.vehicleNumber)}</td>
-
                         <td>${escapeHTML(customer.vehicleModel || "—")}</td>
-
                         <td>
                             <span class="status-badge ${statusClass}">
                                 ${escapeHTML(customer.status)}
                             </span>
                         </td>
-
                         <td>
                             <div class="customer-actions">
-                                <button
-                                    type="button"
+                                <button type="button"
                                     class="table-action"
                                     data-action="edit"
                                     data-id="${escapeHTML(customer.id)}">
                                     Edit
                                 </button>
-
-                                <button
-                                    type="button"
+                                <button type="button"
                                     class="table-action delete-action"
                                     data-action="delete"
                                     data-id="${escapeHTML(customer.id)}">
@@ -477,8 +435,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 </button>
                             </div>
                         </td>
-                    </tr>
-                `;
+                    </tr>`;
             }).join("");
         }
 
@@ -509,7 +466,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // ==========================================
 
     if (customersTableBody) {
-        customersTableBody.addEventListener("click", function (event) {
+        customersTableBody.addEventListener("click", async function (event) {
             const button = event.target.closest("button[data-action]");
 
             if (!button) return;
@@ -517,14 +474,15 @@ document.addEventListener("DOMContentLoaded", function () {
             const id = button.dataset.id;
             const action = button.dataset.action;
 
-            const customer = customers.find(function (item) {
-                return item.id === id;
-            });
+            const customer = customers.find(
+                item => String(item.id) === String(id)
+            );
 
             if (!customer) return;
 
             if (action === "edit") {
                 openCustomerForm(customer);
+                return;
             }
 
             if (action === "delete") {
@@ -534,20 +492,24 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if (!confirmed) return;
 
-                const previousCustomers = [...customers];
+                try {
+                    const response = await fetch(
+                        `${API_URL}/${encodeURIComponent(id)}`,
+                        { method: "DELETE" }
+                    );
 
-                customers = customers.filter(function (item) {
-                    return item.id !== id;
-                });
+                    await readResponse(response);
+                    await loadCustomersFromAPI();
 
-                if (!saveCustomers()) {
-                    customers = previousCustomers;
-                    renderCustomers();
-                    return;
+                    showMessage("Customer deleted successfully from MySQL.");
+
+                } catch (error) {
+                    console.error("Customer delete failed:", error);
+                    showMessage(
+                        "Delete failed. Your backend must have a DELETE /api/customers/:id route.",
+                        true
+                    );
                 }
-
-                renderCustomers();
-                showMessage("Customer deleted successfully.");
             }
         });
     }
@@ -595,148 +557,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // ==========================================
     // CSV IMPORT
-    // Expected columns:
-    // Name, Phone, Email, Vehicle Number,
-    // Vehicle Model, Status, Address
+    // Imports customers through the API
     // ==========================================
-
-    if (importCustomersBtn && importCustomersFile) {
-        importCustomersBtn.addEventListener("click", function () {
-            importCustomersFile.click();
-        });
-
-        importCustomersFile.addEventListener("change", function () {
-            const file = importCustomersFile.files[0];
-
-            if (!file) return;
-
-            const reader = new FileReader();
-
-            reader.onload = function (event) {
-                try {
-                    const rows = parseCSV(String(event.target.result || ""));
-
-                    if (rows.length < 2) {
-                        showMessage(
-                            "The CSV file must contain a header row and at least one customer.",
-                            true
-                        );
-                        return;
-                    }
-
-                    const headers = rows[0].map(normalizeHeader);
-
-                    const getValue = function (row, names) {
-                        const index = headers.findIndex(header =>
-                            names.includes(header)
-                        );
-
-                        return index >= 0 ? String(row[index] || "").trim() : "";
-                    };
-
-                    let imported = 0;
-                    let skipped = 0;
-
-                    const existingPhones = new Set(
-                        customers.map(customer => customer.phone)
-                    );
-
-                    const existingVehicles = new Set(
-                        customers.map(customer =>
-                            customer.vehicleNumber.toUpperCase()
-                        )
-                    );
-
-                    for (const row of rows.slice(1)) {
-                        if (!row.some(value => String(value).trim())) continue;
-
-                        const name = getValue(row, ["name", "fullname", "customername"]);
-                        const phone = getValue(row, ["phone", "phonenumber", "mobile", "mobilenumber"])
-                            .replace(/\D/g, "");
-                        const email = getValue(row, ["email", "emailaddress"]);
-                        const vehicle = getValue(row, ["vehiclenumber", "vehicle", "registrationnumber", "regnumber"])
-                            .toUpperCase();
-                        const model = getValue(row, ["vehiclemodel", "model"]);
-                        const statusValue = getValue(row, ["status", "customerstatus"]);
-                        const address = getValue(row, ["address", "customeraddress"]);
-
-                        if (!name || !/^[0-9]{10}$/.test(phone) || !vehicle) {
-                            skipped++;
-                            continue;
-                        }
-
-                        if (
-                            existingPhones.has(phone) ||
-                            existingVehicles.has(vehicle)
-                        ) {
-                            skipped++;
-                            continue;
-                        }
-
-                        const status =
-                            statusValue.toLowerCase() === "inactive"
-                                ? "Inactive"
-                                : "Active";
-
-                        customers.unshift({
-                            id: `CUS${Date.now()}${imported}`,
-                            name,
-                            phone,
-                            email,
-                            vehicleNumber: vehicle,
-                            vehicleModel: model,
-                            status,
-                            address,
-                            createdAt: new Date().toISOString()
-                        });
-
-                        existingPhones.add(phone);
-                        existingVehicles.add(vehicle);
-                        imported++;
-                    }
-
-                    if (imported > 0) {
-                        if (!saveCustomers()) {
-                            customers = loadCustomers();
-                            renderCustomers();
-                            return;
-                        }
-
-                        currentPage = 1;
-                        renderCustomers();
-                    }
-
-                    showMessage(
-                        `Import complete: ${imported} added, ${skipped} skipped.`,
-                        imported === 0
-                    );
-                } catch (error) {
-                    console.error("CSV import failed:", error);
-                    showMessage(
-                        "Unable to read this CSV file. Please check its format.",
-                        true
-                    );
-                } finally {
-                    importCustomersFile.value = "";
-                }
-            };
-
-            reader.onerror = function () {
-                showMessage("Unable to read the selected CSV file.", true);
-                importCustomersFile.value = "";
-            };
-
-            reader.readAsText(file);
-        });
-    }
-
-    function normalizeHeader(header) {
-        return String(header || "")
-            .replace(/^\uFEFF/, "")
-            .trim()
-            .toLowerCase()
-            .replace(/[^a-z0-9]/g, "");
-    }
 
     function parseCSV(text) {
         const rows = [];
@@ -788,6 +610,120 @@ document.addEventListener("DOMContentLoaded", function () {
         return rows;
     }
 
+    function normalizeHeader(header) {
+        return String(header || "")
+            .replace(/^\uFEFF/, "")
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, "");
+    }
+
+    if (importCustomersBtn && importCustomersFile) {
+        importCustomersBtn.addEventListener("click", function () {
+            importCustomersFile.click();
+        });
+
+        importCustomersFile.addEventListener("change", async function () {
+            const file = importCustomersFile.files[0];
+
+            if (!file) return;
+
+            try {
+                const rows = parseCSV(await file.text());
+
+                if (rows.length < 2) {
+                    showMessage(
+                        "The CSV must contain a header and at least one customer.",
+                        true
+                    );
+                    return;
+                }
+
+                const headers = rows[0].map(normalizeHeader);
+
+                function getValue(row, names) {
+                    const index = headers.findIndex(
+                        header => names.includes(header)
+                    );
+
+                    return index >= 0
+                        ? String(row[index] || "").trim()
+                        : "";
+                }
+
+                let imported = 0;
+                let skipped = 0;
+
+                for (const row of rows.slice(1)) {
+                    const name = getValue(
+                        row,
+                        ["name", "fullname", "customername"]
+                    );
+
+                    const phone = getValue(
+                        row,
+                        ["phone", "phonenumber", "mobile", "mobilenumber"]
+                    ).replace(/\D/g, "");
+
+                    const email = getValue(
+                        row,
+                        ["email", "emailaddress"]
+                    );
+
+                    const vehicle = getValue(
+                        row,
+                        ["vehiclenumber", "vehicle", "registrationnumber", "regnumber"]
+                    ).toUpperCase();
+
+                    const address = getValue(
+                        row,
+                        ["address", "customeraddress"]
+                    );
+
+                    if (!name || !/^[0-9]{10}$/.test(phone) || !vehicle) {
+                        skipped++;
+                        continue;
+                    }
+
+                    try {
+                        const response = await fetch(API_URL, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                full_name: name,
+                                phone: phone,
+                                email: email,
+                                address: address,
+                                vehicle_number: vehicle
+                            })
+                        });
+
+                        await readResponse(response);
+                        imported++;
+                    } catch (error) {
+                        console.error("CSV row import failed:", error);
+                        skipped++;
+                    }
+                }
+
+                await loadCustomersFromAPI();
+
+                showMessage(
+                    `Import complete: ${imported} added, ${skipped} skipped.`,
+                    imported === 0
+                );
+
+            } catch (error) {
+                console.error("CSV import failed:", error);
+                showMessage("Unable to read this CSV file.", true);
+            } finally {
+                importCustomersFile.value = "";
+            }
+        });
+    }
+
     // ==========================================
     // MOBILE SIDEBAR
     // ==========================================
@@ -812,16 +748,14 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ==========================================
-    // OPTIONAL LOGOUT HANDLER
+    // LOGOUT
     // ==========================================
 
     const logoutBtn = $("logoutBtn");
 
     if (logoutBtn) {
         logoutBtn.addEventListener("click", function () {
-            const confirmed = window.confirm("Do you want to log out?");
-
-            if (!confirmed) return;
+            if (!window.confirm("Do you want to log out?")) return;
 
             sessionStorage.removeItem("popoyeLoggedIn");
             window.location.href = "login.html";
@@ -829,9 +763,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ==========================================
-    // INITIAL PAGE RENDER
+    // START
     // ==========================================
 
-    renderCustomers();
+    loadCustomersFromAPI();
 });
-  

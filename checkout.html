@@ -2,321 +2,174 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Popoye Insurance | Secure Checkout</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f4f5f7;
-      color: #202124;
-    }
-    header {
-      background: #171717;
-      color: white;
-      padding: 18px 7%;
-      border-bottom: 4px solid #e32636;
-      font-size: 22px;
-      font-weight: bold;
-    }
-    header span { color: #ff4655; }
-    main {
-      max-width: 600px;
-      margin: 35px auto;
-      padding: 0 16px;
-    }
-    .card {
-      background: white;
-      padding: 26px;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px #0000000d;
-    }
-    h1 { font-size: 25px; margin-top: 0; }
-    .subtitle { color: #666; line-height: 1.5; }
-    .detail {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 13px 0;
-      border-bottom: 1px solid #eee;
-    }
-    .detail span:first-child { color: #666; }
-    .detail strong { text-align: right; overflow-wrap: anywhere; }
-    .amount {
-      margin: 22px 0;
-      padding: 18px;
-      background: #fff1f2;
-      border-radius: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .amount strong { font-size: 25px; color: #d91e2b; }
-    button {
-      width: 100%;
-      padding: 15px;
-      background: #e32636;
-      color: white;
-      border: 0;
-      border-radius: 7px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    button:disabled { opacity: .6; cursor: not-allowed; }
-    #message { margin-top: 16px; line-height: 1.5; overflow-wrap: anywhere; }
-    footer { text-align: center; color: #777; padding: 20px; font-size: 13px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Popoye Insurance | Secure Checkout</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f5f7;
+            color: #202124;
+        }
+
+        header {
+            background: #171717;
+            color: white;
+            padding: 18px 7%;
+            border-bottom: 4px solid #e32636;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        header span {
+            color: #ff4655;
+        }
+
+        main {
+            max-width: 600px;
+            margin: 35px auto;
+            padding: 0 16px;
+        }
+
+        .card {
+            background: white;
+            padding: 26px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px #0000000d;
+        }
+
+        h1 {
+            font-size: 25px;
+            margin-top: 0;
+        }
+
+        .subtitle {
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .detail {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 13px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .detail span:first-child {
+            color: #666;
+        }
+
+        .detail strong {
+            text-align: right;
+            overflow-wrap: anywhere;
+        }
+
+        .amount {
+            margin: 22px 0;
+            padding: 18px;
+            background: #fff1f2;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .amount strong {
+            font-size: 25px;
+            color: #d91e2b;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #e32636;
+            color: white;
+            border: 0;
+            border-radius: 7px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+        }
+
+        #message {
+            margin-top: 16px;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        footer {
+            text-align: center;
+            color: #777;
+            padding: 20px;
+            font-size: 13px;
+        }
+    </style>
+
+    <!-- Razorpay's official checkout library -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
+
 <body>
-  <header>POPOYE <span>INSURANCE</span></header>
+    <header>POPOYE <span>INSURANCE</span></header>
 
-  <main>
-    <section class="card">
-      <h1>Insurance Renewal Checkout</h1>
-      <p class="subtitle">
-        Review your insurance policy details before continuing to payment.
-      </p>
+    <main>
+        <section class="card">
+            <h1>Insurance Renewal Checkout</h1>
 
-      <div class="detail">
-        <span>Policy Number</span>
-        <strong id="policyNumber">Loading...</strong>
-      </div>
-      <div class="detail">
-        <span>Customer</span>
-        <strong id="customerName">—</strong>
-      </div>
-      <div class="detail">
-        <span>Vehicle Number</span>
-        <strong id="vehicleNumber">—</strong>
-      </div>
-      <div class="detail">
-        <span>Policy Expiry</span>
-        <strong id="expiryDate">—</strong>
-      </div>
+            <p class="subtitle">
+                Review your insurance policy details before continuing to payment.
+            </p>
 
-      <div class="amount">
-        <span>Premium Amount</span>
-        <strong id="premium">—</strong>
-      </div>
+            <div class="detail">
+                <span>Policy Number</span>
+                <strong id="policyNumber">Loading...</strong>
+            </div>
 
-      <button id="payButton" disabled>Continue to Payment</button>
-      <p id="message" role="status">Connecting to the server...</p>
-    </section>
-  </main>
+            <div class="detail">
+                <span>Customer</span>
+                <strong id="customerName">—</strong>
+            </div>
 
-  <footer>Popoye Insurance · Secure checkout</footer>
+            <div class="detail">
+                <span>Vehicle Number</span>
+                <strong id="vehicleNumber">—</strong>
+            </div>
 
-  <script>
-    const API_URL = "http://localhost:3000/api";
-    const params = new URLSearchParams(window.location.search);
-    const policyId = params.get("policyId");
+            <div class="detail">
+                <span>Policy Expiry</span>
+                <strong id="expiryDate">—</strong>
+            </div>
 
-    const $ = id => document.getElementById(id);
-    let loadedPolicy = null;
+            <div class="amount">
+                <span>Premium Amount</span>
+                <strong id="premium">—</strong>
+            </div>
 
-    function showMessage(message) {
-      $("message").textContent = message;
-    }
+            <button id="payButton" type="button" disabled>
+                Continue to Payment
+            </button>
 
-    function formatDate(value) {
-      if (!value) return "—";
-      const date = String(value).slice(0, 10);
-      const parts = date.split("-");
-      return parts.length === 3
-        ? `${parts[2]}-${parts[1]}-${parts[0]}`
-        : date;
-    }
+            <p id="message" role="status" aria-live="polite">
+                Connecting to the server...
+            </p>
+        </section>
+    </main>
 
-    async function loadPolicy() {
-      if (!policyId || !/^\d+$/.test(policyId)) {
-        showMessage("A valid policy ID is required in the checkout URL.");
-        return;
-      }
+    <footer>Popoye Insurance · Secure checkout</footer>
 
-      try {
-        const response = await fetch(`${API_URL}/policies`);
-        const data = await response.json();
-
-        if (!response.ok || data.status !== "success") {
-          throw new Error(data.message || "Could not load policies.");
-        }
-
-        loadedPolicy = data.policies.find(
-          policy => String(policy.id) === policyId
-        );
-
-        if (!loadedPolicy) {
-          showMessage("Policy not found.");
-          return;
-        }
-
-        $("policyNumber").textContent = loadedPolicy.policy_number || "—";
-        $("customerName").textContent = loadedPolicy.full_name || "—";
-        $("vehicleNumber").textContent = loadedPolicy.vehicle_number || "—";
-        $("expiryDate").textContent = formatDate(loadedPolicy.end_date);
-
-        const premium = Number(loadedPolicy.premium_amount);
-        $("premium").textContent = Number.isFinite(premium)
-          ? premium.toLocaleString("en-IN", {
-              style: "currency",
-              currency: "INR"
-            })
-          : "Unavailable";
-
-        $("payButton").disabled = !Number.isFinite(premium) || premium <= 0;
-        showMessage("Policy loaded. Payment gateway setup is still required.");
-      } catch (error) {
-        console.error("Checkout load failed:", error);
-        showMessage("Could not connect to the backend. Check that it is running.");
-      }
-    }
-
-    $("payButton").addEventListener("click", () => { 
-      showMessage(
-        "Payment is not enabled yet. We will connect a payment gateway next."
-      );
-      loadPolicy();
-    
-$("payButton").addEventListener("click", async () => {
-  if (!loadedPolicy) {
-    showMessage("Please wait for policy details to load.");
-    return;
-  }
-
-  const button = $("payButton");
-  button.disabled = true;
-  showMessage("Creating secure payment order...");
-
-  try {
-    // Create the order through your backend.
-    const response = await fetch(
-      `${API_URL}/payments/create-order`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          policy_id: loadedPolicy.id
-        })
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok || data.status !== "success") {
-      throw new Error(data.message || "Could not create payment order.");
-    }
-
-    // Load Razorpay Checkout.
-    if (!window.Razorpay) {
-      await new Promise((resolve, reject) => {
-        const script = document.createElement("script");
-        script.src = "https://checkout.razorpay.com/v1/checkout.js";
-        script.onload = resolve;
-        script.onerror = () => reject(
-          new Error("Could not load Razorpay Checkout.")
-        );
-        document.head.appendChild(script);
-      });
-    }
-
-    const options = {
-      key: data.key_id,
-      amount: data.order.amount,
-      currency: data.order.currency,
-      name: "Popoye Insurance",
-      description: `Renewal: ${data.policy.policy_number}`,
-      order_id: data.order.id,
-
-      handler: function (paymentResponse) {
-        console.log("Razorpay response received:", {
-          paymentId: paymentResponse.razorpay_payment_id,
-          orderId: paymentResponse.razorpay_order_id
-        });
-
-        showMessage(
-          "Payment submitted. The server must verify the payment before it is marked Paid."
-        );
-      },
-
-      modal: {
-        ondismiss: function () {
-          showMessage(
-            "Checkout closed. The payment record remains Pending until verified."
-          );
-        }
-      },
-
-      theme: {
-        color: "#e32636"
-      }
-    };
-
-    const checkout = new window.Razorpay(options);
-
-    checkout.on("payment.failed", function (event) {
-      console.error("Razorpay payment failed:", event.error);
-      showMessage(
-        "Payment failed or was not completed. Check the payment status before retrying."
-      );
-    });
-
-    checkout.open();
-    showMessage("Razorpay Checkout opened.");
-
-  } catch (error) {
-    console.error("Razorpay checkout failed:", error);
-    showMessage(error.message || "Could not start payment.");
-  } finally {
-    button.disabled = false;
-  }
-});
- });
-$("payButton").addEventListener("click", async () => {
-  if (!loadedPolicy) {
-    showMessage("Please wait for the policy details to load.");
-    return;
-  }
-
-  const button = $("payButton");
-  button.disabled = true;
-  showMessage("Creating your payment record...");
-
-  try {
-    const response = await fetch(`${API_URL}/payments`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        policy_id: loadedPolicy.id,
-        payment_method: "UPI"
-      })
-    });
-
-    const data = await response.json();
-
-    if (!response.ok || data.status !== "success") {
-      throw new Error(data.message || "Could not create payment.");
-    }
-
-    showMessage(
-      `Payment reference: ${data.payment.payment_number}. ` +
-      `Amount: ₹${Number(data.payment.amount).toLocaleString("en-IN")}. ` +
-      `Status: Pending.`
-    );
-  } catch (error) {
-    console.error("Payment creation failed:", error);
-    showMessage(error.message || "Could not create payment. Please try again.");
-  } finally {
-    button.disabled = false;
-  }
-});
-    loadPolicy();
-  </script>
+    <script src="checkout.js"></script>
 </body>
 </html>

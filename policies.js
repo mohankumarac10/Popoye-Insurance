@@ -1,4 +1,3 @@
-
 "use strict";
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -6,8 +5,6 @@ document.addEventListener("DOMContentLoaded", function () {
     // POPOYE INSURANCE - POLICIES MODULE
     // ==========================================
 
-    const POLICIES_KEY = "popoyePolicies";
-    const CUSTOMERS_KEY = "popoyeCustomers";
     const LOGIN_KEY = "popoyeLoggedIn";
 
     if (localStorage.getItem(LOGIN_KEY) !== "true") {
@@ -17,51 +14,40 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const $ = id => document.getElementById(id);
 
+    function on(id, eventName, handler) {
+        const element = $(id);
+        if (element) {
+            element.addEventListener(eventName, handler);
+        } else {
+            console.warn("HTML element not found:", id);
+        }
+    }
+
     const form = $("policyForm");
     const formCard = $("policyFormCard");
     const tableBody = $("policiesTableBody");
     const message = $("policyMessage");
 
-    let policies = readArray(POLICIES_KEY);
-    let customers = readArray(CUSTOMERS_KEY);
+    let policies = [];
+    let customers = []; 
+    let vehicles = [];
     let currentPage = 1;
     let editingId = null;
     let messageTimer;
 
-    function readArray(key) {
-        try {
-            const value = JSON.parse(localStorage.getItem(key) || "[]");
-            return Array.isArray(value) ? value : [];
-        } catch (error) {
-            console.error("Unable to read " + key, error);
-            return [];
-        }
-    }
-
-    function savePolicies() {
-        try {
-            localStorage.setItem(POLICIES_KEY, JSON.stringify(policies));
-            return true;
-        } catch (error) {
-            console.error("Unable to save policies", error);
-            showMessage("Unable to save policies. Check browser storage.", true);
-            return false;
-        }
-    }
-
-    function makeId() {
-        if (window.crypto && crypto.randomUUID) {
-            return crypto.randomUUID();
-        }
-
-        return "POL-" + Date.now() + "-" +
-            Math.random().toString(36).slice(2, 8);
-    }
+    // ==========================================
+    // HELPER FUNCTIONS
+    // ==========================================
 
     function valueOf(item, keys, fallback = "") {
+        if (!item) return fallback;
+
         for (const key of keys) {
-            if (item[key] !== undefined && item[key] !== null &&
-                item[key] !== "") {
+            if (
+                item[key] !== undefined &&
+                item[key] !== null &&
+                item[key] !== ""
+            ) {
                 return item[key];
             }
         }
@@ -75,57 +61,84 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function customerId(item) {
         return String(valueOf(item, [
-            "customerId", "customer_id", "customer"
+            "customerId",
+            "customer_id",
+            "customer"
         ]));
     }
 
     function getCustomerName(customer) {
         return valueOf(customer, [
-            "name", "customerName", "customer_name", "fullName"
+            "name",
+            "customerName",
+            "customer_name",
+            "fullName",
+            "full_name"
         ], "Unknown Customer");
     }
 
     function getPolicyCustomerName(policy) {
         const savedName = valueOf(policy, [
-            "customerName", "customer_name"
+            "customerName",
+            "customer_name",
+            "full_name"
         ]);
 
         if (savedName) return savedName;
 
         const customer = customers.find(c =>
-            String(valueOf(c, ["id", "customerId", "customer_id"])) ===
-            customerId(policy)
+            String(valueOf(c, [
+                "id",
+                "customerId",
+                "customer_id"
+            ])) === customerId(policy)
         );
 
-        return customer ? getCustomerName(customer) : "Unknown Customer";
+        return customer
+            ? getCustomerName(customer)
+            : "Unknown Customer";
     }
 
     function getPolicyNumber(policy) {
         return valueOf(policy, [
-            "policyNumber", "policy_number", "number"
+            "policyNumber",
+            "policy_number",
+            "number"
         ], "—");
     }
 
     function getExpiry(policy) {
         return valueOf(policy, [
-            "expiryDate", "expiry_date", "policyExpiry", "endDate"
+            "expiryDate",
+            "expiry_date",
+            "end_date",
+            "endDate"
         ]);
     }
 
     function getStartDate(policy) {
         return valueOf(policy, [
-            "startDate", "start_date", "policyStartDate"
+            "startDate",
+            "start_date",
+            "policyStartDate"
         ]);
     }
 
     function getPremium(policy) {
         return Number(valueOf(policy, [
-            "premium", "premiumAmount", "premium_amount", "amount"
+            "premium",
+            "premiumAmount",
+            "premium_amount",
+            "amount"
         ], 0));
     }
 
     function getType(policy) {
-        return valueOf(policy, ["type", "policyType", "policy_type"], "—");
+        return valueOf(policy, [
+            "type",
+            "policyType",
+            "policy_type"
+        ], "—");
     }
 
     function parseDate(value) {
@@ -142,12 +155,25 @@ document.addEventListener("DOMContentLoaded", function () {
         return today;
     }
 
+    function localDateString() {
+        const date = new Date();
+
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
+    }
+
     function getStatus(policy) {
         const savedStatus = String(valueOf(policy, [
-            "status", "policyStatus", "policy_status"
+            "status",
+            "policyStatus",
+            "policy_status"
         ], "Active")).toLowerCase();
 
         if (savedStatus === "pending") return "Pending";
+        if (savedStatus === "cancelled") return "Cancelled";
 
         const expiry = parseDate(getExpiry(policy));
 
@@ -179,6 +205,11 @@ document.addEventListener("DOMContentLoaded", function () {
     function showMessage(text, isError = false) {
         clearTimeout(messageTimer);
 
+        if (!message) {
+            (isError ? console.error : console.log)(text);
+            return;
+        }
+
         message.textContent = text;
         message.classList.toggle("error", isError);
 
@@ -189,11 +220,80 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ==========================================
+    // LOAD DATA FROM NODE.JS / MYSQL
+    // ==========================================
+
+   
+async function loadPoliciesFromBackend() {
+    try {
+        const [
+            policiesResponse,
+            customersResponse,
+            vehiclesResponse
+        ] = await Promise.all([
+            fetch("http://localhost:3000/api/policies"),
+            fetch("http://localhost:3000/api/customers"),
+            fetch("http://localhost:3000/api/vehicles")
+        ]);
+
+        if (
+            !policiesResponse.ok ||
+            !customersResponse.ok ||
+            !vehiclesResponse.ok
+        ) {
+            throw new Error("Backend request failed");
+        }
+
+        const policiesData = await policiesResponse.json();
+        const customersData = await customersResponse.json();
+        const vehiclesData = await vehiclesResponse.json();
+
+        if (
+            policiesData.status !== "success" ||
+            customersData.status !== "success" ||
+            vehiclesData.status !== "success"
+        ) {
+            throw new Error("Backend returned an unsuccessful response");
+        }
+
+        policies = Array.isArray(policiesData.policies)
+            ? policiesData.policies
+            : [];
+
+        customers = Array.isArray(customersData.customers)
+            ? customersData.customers
+            : [];
+
+        vehicles = Array.isArray(vehiclesData.vehicles)
+            ? vehiclesData.vehicles
+            : [];
+
+        populateCustomers();
+        renderPolicies();
+
+        console.log("Policies loaded:", policies.length);
+        console.log("Customers loaded:", customers.length);
+        console.log("Vehicles loaded:", vehicles.length);
+
+    } catch (error) {
+        console.error("Backend loading failed:", error);
+
+        showMessage(
+            "Could not load policies, customers, or vehicles. Check the backend.",
+            true
+        );
+    }
+}
+
+    // ==========================================
     // CUSTOMER DROPDOWN
     // ==========================================
 
     function populateCustomers(selectedId = "") {
         const select = $("policyCustomer");
+
+        if (!select) return;
+
         select.replaceChildren();
 
         const placeholder = document.createElement("option");
@@ -206,84 +306,125 @@ document.addEventListener("DOMContentLoaded", function () {
 
         customers.forEach(function (customer) {
             const option = document.createElement("option");
+
             option.value = String(valueOf(customer, [
-                "id", "customerId", "customer_id"
+                "id",
+                "customerId",
+                "customer_id"
             ]));
 
-            option.textContent = getCustomerName(customer) +
+            option.textContent =
+                getCustomerName(customer) +
                 (customer.phone ? " — " + customer.phone : "");
 
             select.appendChild(option);
         });
 
-        select.value = selectedId;
+        select.value = String(selectedId);
     }
 
     function fillVehicleFromCustomer() {
-        const id = $("policyCustomer").value;
+        const select = $("policyCustomer");
+        if (!select) return;
+
+        const id = select.value;
 
         const customer = customers.find(c =>
-            String(valueOf(c, ["id", "customerId", "customer_id"])) === id
+            String(valueOf(c, [
+                "id",
+                "customerId",
+                "customer_id"
+            ])) === id
         );
 
         if (!customer) return;
 
-        $("policyVehicle").value = valueOf(customer, [
-            "vehicleNumber", "vehicle_number", "registrationNumber"
-        ]);
+        const vehicle = $("policyVehicle");
+        const model = $("policyModel");
 
-        $("policyModel").value = valueOf(customer, [
-            "vehicleModel", "vehicle_model", "model"
-        ]);
+        if (vehicle) {
+            vehicle.value = valueOf(customer, [
+                "vehicleNumber",
+                "vehicle_number",
+                "registrationNumber"
+            ]);
+        }
+
+        if (model) {
+            model.value = valueOf(customer, [
+                "vehicleModel",
+                "vehicle_model",
+                "model"
+            ]);
+        }
     }
 
-    $("policyCustomer").addEventListener("change", fillVehicleFromCustomer);
+    on("policyCustomer", "change", fillVehicleFromCustomer);
 
     // ==========================================
-    // STATUS SUMMARY
+    // SUMMARY
     // ==========================================
 
     function updateSummary() {
         const today = startOfToday();
         const limit = new Date(today);
+
         limit.setDate(limit.getDate() + 30);
 
-        $("totalPolicies").textContent = policies.length;
+        if ($("totalPolicies")) {
+            $("totalPolicies").textContent = policies.length;
+        }
 
-        $("activePolicies").textContent = policies.filter(
-            p => getStatus(p) === "Active"
-        ).length;
+        if ($("activePolicies")) {
+            $("activePolicies").textContent =
+                policies.filter(p => getStatus(p) === "Active").length;
+        }
 
-        $("expiredPolicies").textContent = policies.filter(
-            p => getStatus(p) === "Expired"
-        ).length;
+        if ($("expiredPolicies")) {
+            $("expiredPolicies").textContent =
+                policies.filter(p => getStatus(p) === "Expired").length;
+        }
 
-        $("expiringPolicies").textContent = policies.filter(function (p) {
-            const expiry = parseDate(getExpiry(p));
+        if ($("expiringPolicies")) {
+            $("expiringPolicies").textContent =
+                policies.filter(function (policy) {
+                    const expiry = parseDate(getExpiry(policy));
 
-            if (!expiry || getStatus(p) !== "Active") return false;
+                    if (!expiry || getStatus(policy) !== "Active") {
+                        return false;
+                    }
 
-            expiry.setHours(0, 0, 0, 0);
+                    expiry.setHours(0, 0, 0, 0);
 
-            return expiry >= today && expiry <= limit;
-        }).length;
+                    return expiry >= today && expiry <= limit;
+                }).length;
+        }
     }
 
     // ==========================================
-    // FILTERING AND SEARCH
+    // SEARCH AND FILTERS
     // ==========================================
 
     function getFilteredPolicies() {
-        const query = $("policySearch").value.trim().toLowerCase();
-        const status = $("policyStatusFilter").value;
-        const type = $("policyTypeFilter").value;
+        const query = ($("policySearch")?.value || "")
+            .trim()
+            .toLowerCase();
+
+        const status = $("policyStatusFilter")?.value || "All";
+        const type = $("policyTypeFilter")?.value || "All";
 
         return policies.filter(function (policy) {
             const searchable = [
                 getPolicyNumber(policy),
                 getPolicyCustomerName(policy),
-                valueOf(policy, ["vehicleNumber", "vehicle_number"]),
-                valueOf(policy, ["insuranceCompany", "insurance_company"]),
+                valueOf(policy, [
+                    "vehicleNumber",
+                    "vehicle_number"
+                ]),
+                valueOf(policy, [
+                    "insuranceCompany",
+                    "insurance_company"
+                ]),
                 getType(policy)
             ].join(" ").toLowerCase();
 
@@ -294,18 +435,27 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ==========================================
-    // TABLE RENDERING AND PAGINATION
+    // DISPLAY POLICIES
     // ==========================================
 
     function renderPolicies() {
+        if (!tableBody) return;
+
         const filtered = getFilteredPolicies();
-        const pageSize = Number($("policyPageSize").value) || 10;
-        const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+        const pageSize = Number($("policyPageSize")?.value) || 10;
+
+        const totalPages = Math.max(
+            1,
+            Math.ceil(filtered.length / pageSize)
+        );
 
         currentPage = Math.min(currentPage, totalPages);
 
         const startIndex = (currentPage - 1) * pageSize;
-        const visible = filtered.slice(startIndex, startIndex + pageSize);
+        const visible = filtered.slice(
+            startIndex,
+            startIndex + pageSize
+        );
 
         tableBody.replaceChildren();
 
@@ -321,11 +471,16 @@ document.addEventListener("DOMContentLoaded", function () {
             visible.forEach(function (policy) {
                 const row = tableBody.insertRow();
 
-                row.insertCell().textContent = getPolicyNumber(policy);
-                row.insertCell().textContent = getPolicyCustomerName(policy);
+                row.insertCell().textContent =
+                    getPolicyNumber(policy);
+
+                row.insertCell().textContent =
+                    getPolicyCustomerName(policy);
 
                 row.insertCell().textContent = valueOf(policy, [
-                    "vehicleNumber", "vehicle_number", "registrationNumber"
+                    "vehicleNumber",
+                    "vehicle_number",
+                    "registrationNumber"
                 ], "—");
 
                 row.insertCell().textContent = getType(policy);
@@ -347,19 +502,28 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 const actionCell = row.insertCell();
                 const actions = document.createElement("div");
+
                 actions.className = "customer-actions";
 
                 const edit = document.createElement("button");
+
                 edit.type = "button";
                 edit.className = "table-action";
                 edit.textContent = "Edit";
-                edit.addEventListener("click", () => openEditForm(getId(policy)));
+
+                edit.addEventListener("click", function () {
+                    openEditForm(getId(policy));
+                });
 
                 const remove = document.createElement("button");
+
                 remove.type = "button";
                 remove.className = "table-action delete-action";
                 remove.textContent = "Delete";
-                remove.addEventListener("click", () => deletePolicy(getId(policy)));
+
+                remove.addEventListener("click", function () {
+                    deletePolicy(getId(policy));
+                });
 
                 actions.append(edit, remove);
                 actionCell.appendChild(actions);
@@ -368,16 +532,28 @@ document.addEventListener("DOMContentLoaded", function () {
 
         updateSummary();
 
-        const endIndex = Math.min(startIndex + pageSize, filtered.length);
+        const endIndex = Math.min(
+            startIndex + pageSize,
+            filtered.length
+        );
 
-        $("policyPageInfo").textContent =
-            `Showing ${filtered.length ? startIndex + 1 : 0}–${endIndex} of ${filtered.length} policies`;
+        if ($("policyPageInfo")) {
+            $("policyPageInfo").textContent =
+                `Showing ${filtered.length ? startIndex + 1 : 0}–${endIndex} of ${filtered.length} policies`;
+        }
 
-        $("policyPageNumber").textContent =
-            `Page ${currentPage} of ${totalPages}`;
+        if ($("policyPageNumber")) {
+            $("policyPageNumber").textContent =
+                `Page ${currentPage} of ${totalPages}`;
+        }
 
-        $("policyPrevBtn").disabled = currentPage <= 1;
-        $("policyNextBtn").disabled = currentPage >= totalPages;
+        if ($("policyPrevBtn")) {
+            $("policyPrevBtn").disabled = currentPage <= 1;
+        }
+
+        if ($("policyNextBtn")) {
+            $("policyNextBtn").disabled = currentPage >= totalPages;
+        }
     }
 
     // ==========================================
@@ -385,18 +561,29 @@ document.addEventListener("DOMContentLoaded", function () {
     // ==========================================
 
     function openAddForm() {
+        if (!form || !formCard) return;
+
         editingId = null;
         form.reset();
 
-        $("policyId").value = "";
-        $("policyFormTitle").textContent = "Register New Policy";
-        $("savePolicyBtn").textContent = "Save Policy";
-        $("policyStatus").value = "Active";
+        if ($("policyId")) $("policyId").value = "";
+        if ($("policyFormTitle")) {
+            $("policyFormTitle").textContent = "Register New Policy";
+        }
+        if ($("savePolicyBtn")) {
+            $("savePolicyBtn").textContent = "Save Policy";
+        }
+        if ($("policyStatus")) {
+            $("policyStatus").value = "Active";
+        }
 
         populateCustomers();
 
         formCard.hidden = false;
-        formCard.scrollIntoView({ behavior: "smooth", block: "start" });
+        formCard.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
     }
 
     // ==========================================
@@ -404,163 +591,171 @@ document.addEventListener("DOMContentLoaded", function () {
     // ==========================================
 
     function openEditForm(id) {
-        const policy = policies.find(p => getId(p) === String(id));
+        const policy = policies.find(
+            p => getId(p) === String(id)
+        );
 
-        if (!policy) return;
+        if (!policy || !form || !formCard) return;
 
         editingId = String(id);
         form.reset();
 
-        $("policyId").value = editingId;
+        if ($("policyId")) $("policyId").value = editingId;
 
         populateCustomers(customerId(policy));
 
-        $("policyNumber").value = getPolicyNumber(policy);
-        $("policyVehicle").value = valueOf(policy, [
-            "vehicleNumber", "vehicle_number", "registrationNumber"
-        ]);
+        if ($("policyNumber")) {
+            $("policyNumber").value = getPolicyNumber(policy);
+        }
 
-        $("policyModel").value = valueOf(policy, [
-            "vehicleModel", "vehicle_model", "model"
-        ]);
+        if ($("policyVehicle")) {
+            $("policyVehicle").value = valueOf(policy, [
+                "vehicleNumber",
+                "vehicle_number",
+                "registrationNumber"
+            ]);
+        }
 
-        $("insuranceCompany").value = valueOf(policy, [
-            "insuranceCompany", "insurance_company"
-        ]);
+        if ($("policyModel")) {
+            $("policyModel").value = valueOf(policy, [
+                "vehicleModel",
+                "vehicle_model",
+                "model"
+            ]);
+        }
 
-        $("policyType").value = getType(policy);
-        $("policyStartDate").value = getStartDate(policy);
-        $("policyExpiryDate").value = getExpiry(policy);
-        $("policyPremium").value = getPremium(policy);
-        $("policyStatus").value = getStatus(policy);
+        if ($("insuranceCompany")) {
+            $("insuranceCompany").value = valueOf(policy, [
+                "insuranceCompany",
+                "insurance_company"
+            ]);
+        }
 
-        $("policyFormTitle").textContent = "Edit Policy";
-        $("savePolicyBtn").textContent = "Update Policy";
+        if ($("policyType")) $("policyType").value = getType(policy);
+        if ($("policyStartDate")) {
+            $("policyStartDate").value = getStartDate(policy);
+        }
+        if ($("policyExpiryDate")) {
+            $("policyExpiryDate").value = getExpiry(policy);
+        }
+        if ($("policyPremium")) {
+            $("policyPremium").value = getPremium(policy);
+        }
+        if ($("policyStatus")) {
+            $("policyStatus").value = getStatus(policy);
+        }
+
+        if ($("policyFormTitle")) {
+            $("policyFormTitle").textContent = "Edit Policy";
+        }
+        if ($("savePolicyBtn")) {
+            $("savePolicyBtn").textContent = "Update Policy";
+        }
 
         formCard.hidden = false;
-        formCard.scrollIntoView({ behavior: "smooth", block: "start" });
+        formCard.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
     }
 
     // ==========================================
     // SAVE POLICY
+    // IMPORTANT: API SAVE/UPDATE IS NOT YET WIRED
     // ==========================================
 
-    form.addEventListener("submit", function (event) {
+   
+if (form) {
+    form.addEventListener("submit", async function (event) {
         event.preventDefault();
 
-        customers = readArray(CUSTOMERS_KEY);
-        populateCustomers($("policyCustomer").value);
+        const policyNumber = $("policyNumber")?.value.trim();
+        const customerId = $("policyCustomer")?.value;
+        const vehicleNumber = $("policyVehicle")?.value.trim();
+        const premiumAmount = $("policyPremium")?.value;
+        const startDate = $("policyStartDate")?.value;
+        const endDate = $("policyExpiryDate")?.value;
 
-        const selectedCustomerId = $("policyCustomer").value;
+        if (
+            !policyNumber ||
+            !customerId ||
+            !vehicleNumber ||
+            !premiumAmount ||
+            !startDate ||
+            !endDate
+        ) {
+            showMessage("Please fill in all required policy fields.", true);
+            return;
+        }
 
-        const customer = customers.find(c =>
-            String(valueOf(c, ["id", "customerId", "customer_id"])) ===
-            selectedCustomerId
+        const selectedVehicle = vehicles.find(
+            vehicle =>
+                String(vehicle.customer_id) === String(customerId) &&
+                String(vehicle.vehicle_number).toUpperCase() ===
+                    vehicleNumber.toUpperCase()
         );
 
-        if (!customer) {
-            showMessage("Please select an existing customer first.", true);
+        if (!selectedVehicle) {
+            showMessage(
+                "Vehicle not found for this customer. Please check the selected vehicle.",
+                true
+            );
             return;
-        }
-
-        const policyNumber = $("policyNumber").value.trim();
-        const startDate = $("policyStartDate").value;
-        const expiryDate = $("policyExpiryDate").value;
-        const premium = Number($("policyPremium").value);
-
-        if (!policyNumber || !startDate || !expiryDate ||
-            !$("policyVehicle").value.trim()) {
-            showMessage("Please complete all required fields.", true);
-            return;
-        }
-
-        if (expiryDate < startDate) {
-            showMessage("Expiry date cannot be before the start date.", true);
-            return;
-        }
-
-        if (!Number.isFinite(premium) || premium <= 0) {
-            showMessage("Enter a valid premium amount greater than zero.", true);
-            return;
-        }
-
-        const duplicate = policies.some(function (policy) {
-            return getPolicyNumber(policy).toLowerCase() ===
-                policyNumber.toLowerCase() &&
-                getId(policy) !== editingId;
-        });
-
-        if (duplicate) {
-            showMessage("This policy number already exists.", true);
-            $("policyNumber").focus();
-            return;
-        }
-
-        const existing = policies.find(p => getId(p) === editingId);
-
-        let chosenStatus = $("policyStatus").value;
-
-        // Keep expiry-based status accurate unless the policy is pending.
-        if (chosenStatus !== "Pending" && expiryDate < localDateString()) {
-            chosenStatus = "Expired";
-        } else if (chosenStatus === "Expired" && expiryDate >= localDateString()) {
-            chosenStatus = "Active";
         }
 
         const policyData = {
-            ...(existing || {}),
-            id: editingId || makeId(),
-            customerId: selectedCustomerId,
-            customerName: getCustomerName(customer),
-            policyNumber: policyNumber,
-            vehicleNumber: $("policyVehicle").value.trim().toUpperCase(),
-            vehicleModel: $("policyModel").value.trim(),
-            insuranceCompany: $("insuranceCompany").value.trim(),
-            type: $("policyType").value,
-            startDate: startDate,
-            expiryDate: expiryDate,
-            premium: premium,
-            status: chosenStatus,
-            updatedAt: new Date().toISOString()
+            policy_number: policyNumber,
+            customer_id: Number(customerId),
+            vehicle_id: Number(selectedVehicle.id),
+            premium_amount: Number(premiumAmount),
+            start_date: startDate,
+            end_date: endDate
         };
 
-        if (existing) {
-            policies = policies.map(p =>
-                getId(p) === editingId ? policyData : p
-            );
-        } else {
-            policyData.createdAt = new Date().toISOString();
-            policies.unshift(policyData);
+        try {
+            const url = editingId
+                ? `http://localhost:3000/api/policies/${editingId}`
+                : "http://localhost:3000/api/policies";
+
+            const response = await fetch(url, {
+                method: editingId ? "PUT" : "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(policyData)
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || result.status !== "success") {
+                throw new Error(
+                    result.message || "Could not save policy."
+                );
+            }
+
+            showMessage(result.message || "Policy saved successfully.", false);
+
+            form.reset();
+            editingId = null;
+
+            await loadPoliciesFromBackend();
+
+        } catch (error) {
+            console.error("Policy save failed:", error);
+            showMessage(error.message || "Could not save policy.", true);
         }
-
-        if (!savePolicies()) return;
-
-        formCard.hidden = true;
-        form.reset();
-        editingId = null;
-        currentPage = 1;
-
-        renderPolicies();
-        showMessage(existing
-            ? "Policy updated successfully."
-            : "Policy registered successfully.");
     });
-
-    function localDateString() {
-        const date = new Date();
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
-
-        return `${year}-${month}-${day}`;
-    }
+}
 
     // ==========================================
     // DELETE POLICY
+    // IMPORTANT: API DELETE IS NOT YET WIRED
     // ==========================================
 
-    function deletePolicy(id) {
-        const policy = policies.find(p => getId(p) === String(id));
+    async function deletePolicy(id) {
+        const policy = policies.find(
+            p => getId(p) === String(id)
+        );
 
         if (!policy) return;
 
@@ -570,16 +765,12 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        const previous = policies;
-        policies = policies.filter(p => getId(p) !== String(id));
+        showMessage(
+            "Backend policy deletion is not connected yet.",
+            true
+        );
 
-        if (!savePolicies()) {
-            policies = previous;
-            return;
-        }
-
-        renderPolicies();
-        showMessage("Policy deleted successfully.");
+        // The next step is to connect this action to DELETE /api/policies/:id.
     }
 
     // ==========================================
@@ -597,9 +788,10 @@ document.addEventListener("DOMContentLoaded", function () {
         const columns = [
             ["Policy Number", getPolicyNumber],
             ["Customer", getPolicyCustomerName],
-            ["Vehicle Number", p => valueOf(p, ["vehicleNumber", "vehicle_number"])],
-            ["Vehicle Model", p => valueOf(p, ["vehicleModel", "vehicle_model"])],
-            ["Insurance Company", p => valueOf(p, ["insuranceCompany", "insurance_company"])],
+            ["Vehicle Number", p => valueOf(p, [
+                "vehicleNumber",
+                "vehicle_number"
+            ])],
             ["Policy Type", getType],
             ["Start Date", getStartDate],
             ["Expiry Date", getExpiry],
@@ -610,7 +802,9 @@ document.addEventListener("DOMContentLoaded", function () {
         function csvCell(value) {
             let text = String(value ?? "");
 
-            if (/^[\s]*[=+\-@]/.test(text)) text = "'" + text;
+            if (/^[\s]*[=+\-@]/.test(text)) {
+                text = "'" + text;
+            }
 
             return '"' + text.replace(/"/g, '""') + '"';
         }
@@ -631,9 +825,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
         link.href = url;
         link.download = "popoye-policies.csv";
+
         document.body.appendChild(link);
         link.click();
         link.remove();
+
         URL.revokeObjectURL(url);
 
         showMessage("Policy CSV export started.");
@@ -643,47 +839,62 @@ document.addEventListener("DOMContentLoaded", function () {
     // EVENT LISTENERS
     // ==========================================
 
-    $("addPolicyBtn").addEventListener("click", openAddForm);
+    on("addPolicyBtn", "click", openAddForm);
 
-    $("cancelPolicyBtn").addEventListener("click", function () {
-        formCard.hidden = true;
-        form.reset();
+    on("cancelPolicyBtn", "click", function () {
+        if (formCard) formCard.hidden = true;
+        if (form) form.reset();
+
         editingId = null;
     });
 
-    $("resetPolicyBtn").addEventListener("click", function () {
+    on("resetPolicyBtn", "click", function () {
         if (editingId) {
             openEditForm(editingId);
         } else {
-            form.reset();
+            if (form) form.reset();
+
             populateCustomers();
-            $("policyStatus").value = "Active";
+
+            if ($("policyStatus")) {
+                $("policyStatus").value = "Active";
+            }
         }
     });
 
-    ["policySearch", "policyStatusFilter", "policyTypeFilter",
-        "policyPageSize"].forEach(function (id) {
-        $(id).addEventListener(
-            id === "policySearch" ? "input" : "change",
-            function () {
-                currentPage = 1;
-                renderPolicies();
-            }
-        );
+    [
+        "policySearch",
+        "policyStatusFilter",
+        "policyTypeFilter",
+        "policyPageSize"
+    ].forEach(function (id) {
+        const element = $(id);
+
+        if (element) {
+            element.addEventListener(
+                id === "policySearch" ? "input" : "change",
+                function () {
+                    currentPage = 1;
+                    renderPolicies();
+                }
+            );
+        }
     });
 
-    $("policyPrevBtn").addEventListener("click", function () {
+    on("policyPrevBtn", "click", function () {
         if (currentPage > 1) {
             currentPage--;
             renderPolicies();
         }
     });
 
-    $("policyNextBtn").addEventListener("click", function () {
-        const totalPages = Math.max(1, Math.ceil(
-            getFilteredPolicies().length /
-            (Number($("policyPageSize").value) || 10)
-        ));
+    on("policyNextBtn", "click", function () {
+        const pageSize = Number($("policyPageSize")?.value) || 10;
+
+        const totalPages = Math.max(
+            1,
+            Math.ceil(getFilteredPolicies().length / pageSize)
+        );
 
         if (currentPage < totalPages) {
             currentPage++;
@@ -691,29 +902,32 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    $("exportPoliciesBtn").addEventListener("click", exportPolicies);
+    on("exportPoliciesBtn", "click", exportPolicies);
 
-    $("menuToggle").addEventListener("click", function () {
-        $("sidebar").classList.toggle("sidebar-open");
-    });
+    const menuToggle = $("menuToggle");
+    const sidebar = $("sidebar");
 
-    $("logoutBtn").addEventListener("click", function () {
+    if (menuToggle && sidebar) {
+        menuToggle.addEventListener("click", function () {
+            sidebar.classList.toggle("sidebar-open");
+        });
+    }
+
+    on("logoutBtn", "click", function () {
         localStorage.removeItem(LOGIN_KEY);
         window.location.href = "login.html";
     });
 
+    // Reload from the backend when another tab changes local state.
     window.addEventListener("storage", function (event) {
-        if (event.key === CUSTOMERS_KEY) {
-            customers = readArray(CUSTOMERS_KEY);
-            populateCustomers();
-        }
-
-        if (event.key === POLICIES_KEY) {
-            policies = readArray(POLICIES_KEY);
-            renderPolicies();
+        if (
+            event.key === "popoyeCustomers" ||
+            event.key === "popoyePolicies"
+        ) {
+            loadPoliciesFromBackend();
         }
     });
 
-    populateCustomers();
-    renderPolicies();
+    // Initial page load
+    loadPoliciesFromBackend();
 });
