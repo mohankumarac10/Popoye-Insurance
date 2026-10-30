@@ -598,21 +598,22 @@ app.get("/api/payments", async (req, res) => {
         const policyId = req.query.policyId;
 
         let sql = `
-            SELECT
-                p.id,
-                p.payment_number,
-                p.policy_id,
-                p.amount,
-                p.payment_method,
-                p.transaction_id,
-                p.status,
-                p.paid_at,
-                p.created_at,
-                pol.policy_number
-            FROM payments p
-            INNER JOIN policies pol
-                ON pol.id = p.policy_id
-        `;
+    SELECT
+        p.id,
+        p.payment_reference,
+        p.policy_id,
+        p.amount,
+        p.payment_method,
+        p.gateway_order_id,
+        p.gateway_payment_id,
+        p.payment_status,
+        p.paid_at,
+        p.created_at,
+        pol.policy_number
+    FROM payments p
+    INNER JOIN policies pol
+        ON pol.id = p.policy_id
+`;
 
         const params = [];
 
