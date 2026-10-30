@@ -2,14 +2,13 @@
 :root {
     --navy: #1e133d;
     --teal: #2d7fde;
-    --background: #dbf2f8;
-    --surface: #d4d2f3;
+    --background: #f9f9fe;
+    --surface: #156e6e09;
     --text: #24364B;
     --muted: #718096;
     --border: #fffbfb;
     --danger: #a05f5f;
 } 
-
 * {
     margin: 0;
     padding: 0;
@@ -40,10 +39,10 @@ button {
     align-items: center;
     justify-content: center;
     padding: 24px;
-    background: linear-gradient(135deg, #607da3, #92b1ad);
+    background: linear-gradient(135deg, #e9edf3, #92b1ad);
 }
 
-.login-container {
+.login-container {  
     display: grid;
     grid-template-columns: 1fr 1fr;
     width: 100%;
@@ -57,7 +56,7 @@ button {
 
 .login-brand {
     background: var(--navy);
-    color: rgb(161, 42, 42);
+    color: rgba(187, 42, 42, 0.781);
     padding: 55px 42px;
     display: flex;
     flex-direction: column;
@@ -68,7 +67,7 @@ button {
     width: 110px;
     height: 110px;
     object-fit: contain;
-    background: rgb(235, 163, 163);
+    background: rgba(222, 174, 174, 0.765);
     border-radius: 14px;
     padding: -1px;
     margin-bottom: 40px;
@@ -91,7 +90,7 @@ button {
 
 .login-features p {
     margin: 12px 0;
-    color: #a8c0dc;
+    color: #f9f9f9;
 }
 
 .login-form-section {
@@ -320,7 +319,7 @@ button {
     gap: 12px;
     padding: 12px 14px;
     border-radius: 8px;
-    color: #f3f5f7;
+    color: #fbfcfd;
     text-decoration: none;
     font-size: 14px;
     transition: 0.2s;
@@ -328,7 +327,7 @@ button {
 
 .nav-link:hover,
 .nav-link.active {
-    color: #f9f9f7;
+    color: #04010f;
     background: var(--teal);
 }
 
@@ -385,7 +384,7 @@ button {
     gap: 16px;
     min-height: 88px;
     padding: 18px 30px;
-    background: #faf1f1;
+    background: #fdfbfb;
     border-bottom: 1px solid var(--border);
 }
 
@@ -422,7 +421,7 @@ button {
     width: 42px;
     height: 42px;
     border-radius: 50%;
-    background: #DDF4F0;
+    background: #d96a29;
     color: var(--navy);
     font-size: 18px;
     font-weight: 700;
@@ -433,7 +432,7 @@ button {
     padding: 8px 12px;
     border: 1px solid var(--border);
     border-radius: 8px;
-    background: #f0eded;
+    background: #5b1010;
     color: var(--navy);
 }
 
@@ -452,7 +451,7 @@ button {
     border: 1px solid var(--border);
     border-radius: 8px;
     color: var(--navy);
-    background: #dde6e5;
+    background: #dff1ef;
     font-size: 12px;
 }
 
@@ -469,7 +468,7 @@ button {
     padding: 20px;
     border: 1px solid var(--border);
     border-radius: 12px;
-    background: #FFFFFF;
+    background: #12097521;
     box-shadow: var(--shadow);
 }
 
@@ -495,7 +494,7 @@ button {
 
 .icon-blue {
     color: #2563EB;
-    background: #081839;
+    background: #2152b3;
 }
 
 .icon-teal {
@@ -504,7 +503,7 @@ button {
 }
 
 .icon-green {
-    color: #16803C;
+    color: #098f3a;
     background: #E2F8E8;
 }
 
@@ -587,8 +586,8 @@ button {
     flex-shrink: 0;
     border-radius: 50%;
     background: conic-gradient(
-        #0D9488 0deg 0deg,
-        #E3EAF2 0deg 360deg
+        #080c0c 0deg 0deg,
+        #e6edf5 0deg 360deg
     );
     position: relative;
 }
@@ -598,7 +597,7 @@ button {
     position: absolute;
     inset: 18px;
     border-radius: 50%;
-    background: #FFFFFF;
+    background: #f0e1e1;
 }
 
 .donut-center {
@@ -647,7 +646,7 @@ button {
 }
 
 .dot-active {
-    background: #0D9488;
+    background: #3a9e97;
 }
 
 .dot-expired {
@@ -1563,4 +1562,138 @@ button {
   .reminder-table td {
     padding: 10px;
   }
+}
+
+/* =================================
+   POPOYE INSURANCE - WEB ANIMATIONS
+   ================================= */
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Page entrance animation */
+body {
+    animation: pageFadeIn 0.6s ease-out;
+}
+
+@keyframes pageFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Dashboard cards */
+.stat-card,
+.dashboard-card,
+.card {
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease,
+        border-color 0.3s ease;
+}
+
+.stat-card:hover,
+.dashboard-card:hover,
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 28px rgba(20, 43, 74, 0.12);
+    border-color: #0D9488;
+}
+
+/* Buttons */
+button,
+.btn,
+.primary-btn {
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background-color 0.2s ease;
+}
+
+button:hover,
+.btn:hover,
+.primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 14px rgba(13, 148, 136, 0.2);
+}
+
+button:active,
+.btn:active,
+.primary-btn:active {
+    transform: scale(0.97);
+}
+
+/* Sidebar links */
+.sidebar a {
+    transition:
+        background-color 0.25s ease,
+        color 0.25s ease,
+        padding-left 0.25s ease;
+}
+
+.sidebar a:hover {
+    background-color: rgba(13, 148, 136, 0.12);
+    color: #0D9488;
+    padding-left: 20px;
+}
+
+/* Tables */
+tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+tbody tr:hover {
+    background-color: #F0FDFA;
+}
+
+/* Form inputs */
+input,
+select,
+textarea {
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: #0D9488;
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+}
+
+/* Animated loading spinner */
+.loading-spinner {
+    width: 28px;
+    height: 28px;
+    border: 3px solid #E3EAF2;
+    border-top-color: #0D9488;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
 }
